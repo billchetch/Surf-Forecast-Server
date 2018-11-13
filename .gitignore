@@ -15,5 +15,5 @@ htdocs/uploads/*
 htdocs/assets/*
 htdocs/html/*
 oauth.json
-dump.sql*
+*.sql
 !readme
