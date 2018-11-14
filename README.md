@@ -1,1 +1,1 @@
-# surf-forecast
+# surf-forecast-server
