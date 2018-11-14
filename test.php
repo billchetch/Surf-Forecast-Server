@@ -24,6 +24,7 @@ function convertNumber($val, $round = -1){  //scientific exponent
 		return $val2return;
 	}
 
+//init logger
 Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
 $router = null;
 try{
