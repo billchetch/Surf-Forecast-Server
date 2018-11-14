@@ -1,8 +1,6 @@
 <?php
 require('_include.php');
 
-Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
-
 function convertNumber($val, $round = -1){  //scientific exponent
 		//e.g. 0.1908054709434509E+1
 		$val2return = null;
@@ -26,6 +24,7 @@ function convertNumber($val, $round = -1){  //scientific exponent
 		return $val2return;
 	}
 
+Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
 $router = null;
 try{
 	//$router = Router::createInstance(Config::get('INTERNET_ROUTER_CLASS'), Config::get('INTERNET_ROUTER_IP'));
