@@ -28,29 +28,9 @@ function convertNumber($val, $round = -1){  //scientific exponent
 Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
 $router = null;
 try{
-	//$router = Router::createInstance(Config::get('INTERNET_ROUTER_CLASS'), Config::get('INTERNET_ROUTER_IP'));
-	//$router->login();
-	Logger::start();
-	/*$digest = Digest::create($dbh, "TEST");
-	$digest->addDigestInfo("-","testing");
-	$digest->write();
-	
-	APIRequest::init($dbh, APIRequest::SOURCE_REMOTE);
-	$apiRequest = APIRequest::createRequest('digests');
-	$digests = Digest::getStatus(0);
-	foreach($digests as $dg){
-		$pd = $dg->getPostData();
-		echo $pd['source_created'].' '.$pd['source_timezone_offset']."\n";
-		$pd = $dg->getPostData();
-		$apiRequest->post($pd);
-		$dg->setStatus(Digest::STATUS_POSTED);
-		$dg->write();
-	}*/
-	
-	$feeds = Feed::createCollection($dbh);
-	foreach($feeds as $feed){
-		
-	}
+	$router = Router::createInstance(Config::get('INTERNET_ROUTER_CLASS'), Config::get('INTERNET_ROUTER_IP'));
+	$router->login();
+	$router->reboot();
 	
 } catch (Exception $e){
 	if($router && $router->loggedIn){

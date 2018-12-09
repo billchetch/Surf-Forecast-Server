@@ -36,22 +36,24 @@ try{
 	//if the internet router is contactable but there is no internet then we see if we should try a restart
 	if($internetAvailable){
 		SysInfo::set('internet-last-available', date('Y-m-d H:i:s'));
-	} else if($internetRouterAvailable){
+	} 
+	
+	if($internetRouterAvailable){
 		if(Config::get('INTERNET_ROUTER_CLASS')){
 			try{
 				$router = Router::createInstance(Config::get('INTERNET_ROUTER_CLASS'), Config::get('INTERNET_ROUTER_IP'));
 				$router->login();
-				//$rourterStatus = $router->getStatusSummary();
-				//$digest->addDigestInfo("INTERNET ROUTER", $routerStatus);
+				$routerInfo = $router->getDeviceInfo();
+				$routerInfo['internet last available'] = SysInfo::get('internet-last-available');
+				$digest->addDigestInfo("INTERNET ROUTER", $routerInfo);
 				
-				//now we try restart
-				$dtIA = SysInfo::get('internet-last-available');
+				//now we try restart if more than a certain time has elapsed
 				$dtRA = SysInfo::get('internet-router-last-restarted');
 				$routerRestartTime = Config::get('INTERNET_ROUTER_RESTART_TIME', 60*60*24);
-				$doRestart = (!$dtIA || !$dtRA || (time() - max(strtotime($dtRA), strtotime($dtIA)) > $routerRestartTime));
+				$doReboot = (!$dtRA || (time() - strtotime($dtRA) > $routerRestartTime));
 				
-				if($doRestart){
-					$digest->addDigestInfo("INTERNET ROUTER", "Router available and attempting reboot because of no internet");
+				if($doReboot){
+					$digest->addDigestInfo("INTERNET ROUTER", "Router available and attempting reboot");
 					SysInfo::set('internet-router-last-restarted', date('Y-m-d H:i:s'));
 					$router->reboot();
 				} else {

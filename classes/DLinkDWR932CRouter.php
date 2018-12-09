@@ -49,7 +49,41 @@ class DLinkDWR932CRouter extends Router{
 	}
 	
 	function getDeviceInfo(){
+		$data = array();
+		$pages = array('get_charge_capacity', 'GetWanConnectedTime', 'GetSystemAbout');
+		foreach($pages as $page){
+			$params = $this->getParams($page);
+			$data = array_merge($data, $this->request('qcmap_web_cgi', $params, 'POST'));	
+		}
 		
+		$data['battery_level'] = $data['capacity'];
+		unset($data['capacity']);
+		unset($data['Page']);
+		unset($data['result']);
+		return $data;
+	}
+	
+	
+	function getWifiInfo(){
+		$params = $this->getParams('GetWiFiClients');
+		$data = $this->request('qcmap_web_cgi', $params, 'POST');
+		
+		unset($data['Page']);
+		unset($data['result']);
+		return $data;
+	}
+	
+	function getWanInfo(){
+		$data = array();
+		$pages = array('GetWanStatus', 'GetWanConnectedTime', 'GetWLANConfig', 'GetWWANSTATS');
+		foreach($pages as $page){
+			$params = $this->getParams($page);
+			$data = array_merge($data, $this->request('qcmap_web_cgi', $params, 'POST'));	
+		}
+		
+		unset($data['Page']);
+		unset($data['result']);
+		return $data;
 	}
 }
 ?>

@@ -71,7 +71,11 @@ class Router{
 	}
 	
 	function getDeviceInfo(){
-		//battery
+		
+	}
+	
+	function getWifiInfo(){
+		
 	}
 }
 ?>
