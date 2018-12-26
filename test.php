@@ -30,6 +30,7 @@ $router = null;
 try{
 	$router = Router::createInstance(Config::get('INTERNET_ROUTER_CLASS'), Config::get('INTERNET_ROUTER_IP'));
 	$router->login();
+	print_r($router->getDeviceInfo());
 	$router->reboot();
 	
 } catch (Exception $e){

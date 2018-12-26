@@ -45,7 +45,7 @@ try{
 				$router->login();
 				$routerInfo = $router->getDeviceInfo();
 				$routerInfo['internet last available'] = SysInfo::get('internet-last-available');
-				$digest->addDigestInfo("INTERNET ROUTER", $routerInfo);
+				$digest->addDigestInfo("INTERNET ROUTER", Digest::formatAssocArray($routerInfo));
 				
 				//now we try restart if more than a certain time has elapsed
 				$dtRA = SysInfo::get('internet-router-last-restarted');
@@ -56,9 +56,10 @@ try{
 					$digest->addDigestInfo("INTERNET ROUTER", "Router available and attempting reboot");
 					SysInfo::set('internet-router-last-restarted', date('Y-m-d H:i:s'));
 					$router->reboot();
+					die;
 				} else {
 					$router->logout();
-					$digest->addDigestInfo("INTERNET ROUTER", "Router available but postponing restart to a later time");
+					$digest->addDigestInfo("INTERNET ROUTER", "Router available but postponing reboot to a later time");
 				}
 			} catch (Exception $e){
 				$digest->addDigestInfo("INTERNET ROUTER", 'Exception: '.$e->getMessage());

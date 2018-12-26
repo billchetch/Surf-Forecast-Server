@@ -56,7 +56,7 @@ class DLinkDWR932CRouter extends Router{
 			$data = array_merge($data, $this->request('qcmap_web_cgi', $params, 'POST'));	
 		}
 		
-		$data['battery_level'] = $data['capacity'];
+		$data['battery_level'] = $data['capacity'].'%';
 		unset($data['capacity']);
 		unset($data['Page']);
 		unset($data['result']);
