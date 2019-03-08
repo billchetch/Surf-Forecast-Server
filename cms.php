@@ -36,7 +36,7 @@ SFManager.prototype.alert = function(msg){
 }
 
 SFManager.prototype.apiURL = function(request, params){
-	var url = '/forecast/api/' + request;
+	var url = '/api/' + request;
 	if(params){
 		var qs = '';
 		for(var p in params){
