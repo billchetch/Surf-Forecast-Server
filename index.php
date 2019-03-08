@@ -6,8 +6,8 @@ try{
 	$req = $_GET['req'];
 	$ar = explode('/', $req);
 	
-	switch($ar[0]){ //API
-		case 'api':
+	switch($ar[0]){ 
+		case 'api': //API access
 			try{
 				array_shift($ar);
 				$apiRequest = implode('/',$ar);
@@ -66,7 +66,7 @@ try{
 			break;
 			
 		default:
-			throw new Exception("Unrecognised service");
+			throw new Exception($ar[0]."is an unrecognised service");
 			break;
 	}
 
