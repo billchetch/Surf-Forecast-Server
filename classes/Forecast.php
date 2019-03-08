@@ -246,6 +246,13 @@ class Forecast extends DBObject{
 			$dkey = $parts[0].' '.$tz;
 			$synthesis['hours'][$key]['tide_position'] = null;
 			
+			$echo = false;
+			if($key == '2019-03-09 06:00:00 '.$tz){
+				$echo = true;
+			} else {
+				$echo = false;
+			}
+			
 			if(isset($synthesis['days'][$dkey])){
 				$day = $synthesis['days'][$dkey];
 				$ht = strtotime($parts[0].' '.$parts[1]); //leave out the timezone
@@ -258,8 +265,10 @@ class Forecast extends DBObject{
 						break;	
 					}
 				}
+				
 				$prev = null;
 				$next = null;
+				
 				if($nextSfx == 0){ //the hour is later than all the ones for the day so take the 'prev' extreme as the last of the day and the 'next' as the first of the next day
 					$prevSfx = $day['tide_extreme_type_4'] ? 4 : 3; //TODO: this should loop until a value is found
 					if($day['tide_extreme_type_'.$prevSfx]){
@@ -272,15 +281,18 @@ class Forecast extends DBObject{
 							}	
 						}
 					}
-				} elseif($nextSfx == 1){ //the hour is earlier than the first so use the first as the 'next' and the 'prev' get from yesterday
+				} elseif($nextSfx == 1){ //the hour is earlier than the first so use the first as the 'next' and the 'prev' get from yesterday (if it has data ... if not
 					if($day['tide_extreme_type_1']){
 						$next = array('time'=>$parts[0].' '.$day['tide_extreme_time_1']['weighted_average'], 'position'=>$day['tide_extreme_type_1'], 'height'=>$day['tide_extreme_height_1']['weighted_average']);
 						$dk = date("Y-m-d", strtotime($next['time']) - 24*3600);
 						if(isset($synthesis['days'][$dk.' '.$tz])){
 							$day = $synthesis['days'][$dk.' '.$tz];
-							$prevSfx = $day['tide_extreme_type_4'] ? 4 : 3;
-							if($day['tide_extreme_time_'.$prevSfx]){
-								$prev = array('time'=>$dk.' '.$day['tide_extreme_time_'.$prevSfx]['weighted_average'], 'position'=>$day['tide_extreme_type_'.$prevSfx], 'height'=>$day['tide_extreme_height_'.$prevSfx]['weighted_average']);
+							for($j = 4; $j > 0; $j--){
+								$prevSfx = $j;
+								if($day['tide_extreme_type_'.$prevSfx]){
+									$prev = array('time'=>$dk.' '.$day['tide_extreme_time_'.$prevSfx]['weighted_average'], 'position'=>$day['tide_extreme_type_'.$prevSfx], 'height'=>$day['tide_extreme_height_'.$prevSfx]['weighted_average']);
+									break;
+								}
 							}
 						}
 					}
