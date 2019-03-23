@@ -17,6 +17,7 @@ class DLinkDWR932CRouter extends Router{
 		);
 		
 		$data = $this->request('qcmap_auth', $params);
+		
 		if($data && isset($data['result']) && $data['result'] == 0){
 			if(!isset($data['token']))throw new Exception("No token found");
 			$this->token = $data['token'];

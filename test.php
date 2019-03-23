@@ -28,10 +28,50 @@ function convertNumber($val, $round = -1){  //scientific exponent
 Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
 $router = null;
 try{
-	$router = Router::createInstance(Config::get('INTERNET_ROUTER_CLASS'), Config::get('INTERNET_ROUTER_IP'));
+	$cls = 'TPLinkM7350Router';
+	$ip = '192.168.0.1';
+	$router = Router::createInstance($cls, $ip);
+	
 	$router->login();
-	print_r($router->getDeviceInfo());
-	$router->reboot();
+	$data = $router->getDeviceInfo();
+	Digest::initialise();
+	echo Digest::formatAssocArray($data);
+	$router->logout();
+	die;
+	
+	/*$params = array();
+	$params['module'] = "webServer";
+	$params['action'] = 0;
+	$data = $router->request('cgi-bin/web_cgi', $params);
+	print_r($data);
+	
+	$params = array();
+	$params['module'] = "webServer";
+	$params['action'] = 5;
+	$data = $router->request('cgi-bin/web_cgi', $params);
+	print_r($data);*/
+	
+	$params = array();
+	$params['module'] = "authenticator";
+	$params['action'] = 0;
+	$data = $router->request('cgi-bin/auth_cgi', $params);
+	$nonce = $data['nonce'];
+	
+	/*$params = array();
+	$params['module'] = "authenticator";
+	$params['action'] = 2;
+	$data = $router->request('cgi-bin/auth_cgi', $params);
+	print_r($data);*/
+	
+	$pw = 'Frank1yn';
+	$s = $pw.':'.$nonce;
+	$digest = md5($s, false);
+	$params = array();
+	$params['module'] = "authenticator";
+	$params['action'] = 1;
+	$params['digest'] = $digest; 
+	$data = $router->request('cgi-bin/auth_cgi', $params);
+	print_r($data);
 	
 } catch (Exception $e){
 	if($router && $router->loggedIn){

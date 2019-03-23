@@ -54,19 +54,29 @@ try{
 				echo "API exception: ".$e->getMessage();
 				die;
 			}
+			die;
 			break;
 			
 			
 		case 'router':
 			require('router.php');
+			die;
 			break;
 			
 		case 'cms':
 			require('cms.php');
+			die;
+			break;
+			
+		case 'test':
+			require('test.php');
+			break;
+			
+		case 'none':
 			break;
 			
 		default:
-			throw new Exception($ar[0]."is an unrecognised service");
+			throw new Exception($ar[0]." is an unrecognised service");
 			break;
 	}
 
@@ -79,5 +89,23 @@ try{
 	header('HTTP/1.0 404 Not Found', true, 404);
 	echo "Exception: ".$e->getMessage();
 }
-
+$message = 'message';
+$md5 = md5($message, false);
 ?>
+<html>
+
+<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.min.js"></script>
+<script type="text/javascript">
+window.onload = function(){
+	try{
+		var s = CryptoJS.MD5("<?php echo $message?>");
+		alert(s + " = <?php echo $md5; ?>");
+	} catch(e){
+		alert(e.message);
+	}
+}
+</script>
+<body>
+</body>
+</html>

@@ -53,6 +53,9 @@ class Digest extends DBObject{
 		if(!$delimiter)$delimiter = static::$config['LINE_FEED'];
 		$s = '';
 		foreach($ar as $k=>$v){
+			if(is_array($v)){
+				$v = static::formatAssocArray($v, $delimiter);
+			}
 			$s.= ($s ? $delimiter : '').("$k: $v");
 		}
 		return $s;
