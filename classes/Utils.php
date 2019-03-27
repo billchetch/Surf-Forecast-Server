@@ -41,6 +41,15 @@ class Utils{
 		}
 	}
 	
+	static public function timezoneOffsetInSecs($tz){
+		if(strlen($tz) != 5)throw new Exception("$tz is not a recognised timezone offset");
+		$h = (int)substr($tz, 1, 2);
+		$m = (int)substr($tz, 3, 4);
+		$secs = 3600*$h + 60*$m;
+		if($tz{0} == '-')$secs = -$secs;
+		return $secs;
+	}
+	
 	static public function ping($domain, $count = 1, $wait = 10000){
 		$exec = '';
 		$statistics = '';

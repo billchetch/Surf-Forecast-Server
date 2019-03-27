@@ -72,6 +72,7 @@ class Forecast extends DBObject{
 		$synthesis['days'] = array();
 		$synthesis['timezone'] = $forecasts[0]->rowdata['timezone'];
 		$synthesis['timezone_offset'] = $forecasts[0]->rowdata['timezone_offset'];
+		$synthesis['timezone_offset_secs'] = Utils::timezoneOffsetInSecs($synthesis['timezone_offset']);
 		$synthesis['latitude'] = $forecasts[0]->rowdata['latitude'];
 		$synthesis['longitude'] = $forecasts[0]->rowdata['longitude'];
 		
