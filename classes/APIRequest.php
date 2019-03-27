@@ -127,7 +127,9 @@ class APIRequest extends DBObject{
 						$weighting = Config::get('FORECAST_WEIGHTING'); 
 						$restrict2sources = null; //possible parameter
 						$data = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
-						//$data['last_updated'] = Utils::formatUTC($lastFeedRun->rowdata['status_updated_on']);
+						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
+							$data = $data[$request[2]];
+						}
 						break;
 						
 					case 'device':
