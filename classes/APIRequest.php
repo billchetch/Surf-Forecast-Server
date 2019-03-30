@@ -480,6 +480,7 @@ class APIRequest extends DBObject{
 		echo is_array($data) ? json_encode($data) : $data;
 	}
 	
+	
 	function __construct($rowData, $readFromDB = true){
 		parent::__construct($rowData, $readFromDB);
 		

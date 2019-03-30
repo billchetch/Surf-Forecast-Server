@@ -247,13 +247,6 @@ class Forecast extends DBObject{
 			$dkey = $parts[0].' '.$tz;
 			$synthesis['hours'][$key]['tide_position'] = null;
 			
-			$echo = false;
-			if($key == '2019-03-09 06:00:00 '.$tz){
-				$echo = true;
-			} else {
-				$echo = false;
-			}
-			
 			if(isset($synthesis['days'][$dkey])){
 				$day = $synthesis['days'][$dkey];
 				$ht = strtotime($parts[0].' '.$parts[1]); //leave out the timezone

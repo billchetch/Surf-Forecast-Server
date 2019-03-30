@@ -51,7 +51,16 @@ try{
 					
 			} catch (Exception $e){
 				header('HTTP/1.0 404 Not Found', true, 404);
-				echo "API exception: ".$e->getMessage();
+				header('Content-Type: application/json');
+				header('X-Server-Time: '.time());
+				header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+				header("Pragma: no-cache"); // HTTP 1.0.
+				header("Expires: 0"); // Proxies.
+				$ex = array();
+				$ex['exception'] = "API Exception";
+				//$ex['code'] = $e->getCode();
+				$ex['message'] = $e->getMessage(); 
+				echo json_encode($ex);
 				die;
 			}
 			die;
