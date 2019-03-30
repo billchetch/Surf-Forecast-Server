@@ -480,6 +480,14 @@ class APIRequest extends DBObject{
 		echo is_array($data) ? json_encode($data) : $data;
 	}
 	
+	public static function exception($e, $httpCode = 404, $httpMessage = "Not Found"){
+		header("HTTP/1.0 $httpCode $httpMessage", true, $httpCode);
+		$ex = array();
+		$ex['message'] = $e->getMessage();
+		$ex['code'] = $e->getCode();
+		static::output($ex);
+	}
+	
 	
 	function __construct($rowData, $readFromDB = true){
 		parent::__construct($rowData, $readFromDB);
