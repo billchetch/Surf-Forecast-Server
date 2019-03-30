@@ -485,6 +485,7 @@ class APIRequest extends DBObject{
 		$ex = array();
 		$ex['message'] = $e->getMessage();
 		$ex['code'] = $e->getCode();
+		$ex['http_code'] = $httpCode;
 		static::output($ex);
 	}
 	
