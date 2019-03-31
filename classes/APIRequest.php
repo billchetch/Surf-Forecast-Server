@@ -134,8 +134,6 @@ class APIRequest extends DBObject{
 						if($prevFeedRun && $prevFeedRun->id){
 							$prevForecast = Forecast::getSynthesis(self::$dbh, $prevFeedRun, $location, $weighting, $restrict2sources);
 							$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
-							print_r($forecast['days']);
-							die;
 						}
 						$data = $forecast;
 						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
