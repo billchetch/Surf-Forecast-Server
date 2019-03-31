@@ -126,14 +126,18 @@ class APIRequest extends DBObject{
 						if(empty($lastFeedRun->id))throw new Exception("No feed run found");
 						$weighting = Config::get('FORECAST_WEIGHTING'); 
 						$restrict2sources = null; //possible parameter
+						$forecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
 						$days = array();
 						if($lastFeedRun->prevId){
-							$prevForecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
+							$prevForecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->prevId, $location, $weighting, $restrict2sources);
+							$firstDay = array_keys($forecast['days'])[0];
 							foreach($prevForecast['days'] as $dt=>$d){
-								$days[$dt] = $d;
+								$diff = Utils::dateDiff($firstDay, $dt); 
+								if($diff >=0 && $diff < 2){ 
+									$days[$dt] = $d;
+								}
 							}
 						}
-						$forecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
 						foreach($forecast['days'] as $dt=>$d){
 							$days[$dt] = $d;
 						}
