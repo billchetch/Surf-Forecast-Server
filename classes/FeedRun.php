@@ -6,6 +6,7 @@ class FeedRun extends DBObject{
 	
 	public $status;
 	public $downloadAttempts;
+	public $prevId;
 	
 	/*
 	 * static methods
@@ -19,7 +20,9 @@ class FeedRun extends DBObject{
 	
 	public static function getLastRun($dbh){
 		$feedRuns = self::createCollection($dbh);
-		return count($feedRuns) ? $feedRuns[0] : null;
+		$fr = count($feedRuns) ? $feedRuns[0] : null;
+		if(count($feedRuns) > 1)$fr->prevId = $feedRuns[1]->id;
+		return $fr;
 	}
 	
 	public static function run($dbh, &$errors){

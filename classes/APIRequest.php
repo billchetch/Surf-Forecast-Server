@@ -126,7 +126,20 @@ class APIRequest extends DBObject{
 						if(empty($lastFeedRun->id))throw new Exception("No feed run found");
 						$weighting = Config::get('FORECAST_WEIGHTING'); 
 						$restrict2sources = null; //possible parameter
-						$data = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
+						$days = array();
+						if($lastFeedRun->prevId){
+							$prevForecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
+							foreach($prevForecast['days'] as $dt=>$d){
+								$days[$dt] = $d;
+							}
+						}
+						$forecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
+						foreach($forecast['days'] as $dt=>$d){
+							$days[$dt] = $d;
+						}
+						$forecast['days'] = $days;
+						$data = $forecast;
+						
 						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
 							$data = $data[$request[2]];
 						}
