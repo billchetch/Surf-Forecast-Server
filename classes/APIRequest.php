@@ -127,8 +127,12 @@ class APIRequest extends DBObject{
 						$weighting = Config::get('FORECAST_WEIGHTING'); 
 						$restrict2sources = null; //possible parameter
 						$forecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->id, $location, $weighting, $restrict2sources);
-						if($lastFeedRun->prevId){
-							$prevForecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun->prevId, $location, $weighting, $restrict2sources);
+						
+						$secsOld = $lastFeedRun->rowdata['secs'] + 2*24*3600;
+						$prevFeedRun = FeedRun::getLastRun(self::$dbh, $secsOld);
+						
+						if($prevFeedRun && $prevFeedRun->id){
+							$prevForecast = Forecast::getSynthesis(self::$dbh, $prevFeedRun->id, $location, $weighting, $restrict2sources);
 							$firstDay = array_keys($forecast['days'])[0];
 							foreach($prevForecast['days'] as $dt=>$d){
 								$diff = Utils::dateDiff($firstDay, $dt); 
@@ -142,6 +146,7 @@ class APIRequest extends DBObject{
 						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
 							$data = $data[$request[2]];
 						}
+						
 						break;
 						
 					case 'device':

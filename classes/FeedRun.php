@@ -15,11 +15,11 @@ class FeedRun extends DBObject{
 		$t =  Config::get('FEED_RUNS_TABLE');
 		static::$config['TABLE_NAME'] = $t;
 		static::$config['SELECT_ROW_SQL'] = "SELECT * FROM $t WHERE status<>'COMPLETED'";
-		static::$config['SELECT_ROWS_SQL'] = "SELECT * FROM $t WHERE status='COMPLETED' AND (error_report IS NULL OR error_report='') ORDER BY id DESC LIMIT 10";
+		static::$config['SELECT_ROWS_SQL'] = "SELECT *, now() - created AS secs FROM $t WHERE status='COMPLETED' AND (error_report IS NULL OR error_report='') AND now()-created>=:secs ORDER BY id DESC LIMIT 100";
 	}
 	
-	public static function getLastRun($dbh){
-		$feedRuns = self::createCollection($dbh);
+	public static function getLastRun($dbh, $secs = 0){
+		$feedRuns = self::createCollection($dbh, array('secs'=>$secs));
 		$fr = count($feedRuns) ? $feedRuns[0] : null;
 		if(count($feedRuns) > 1)$fr->prevId = $feedRuns[1]->id;
 		return $fr;
