@@ -139,7 +139,6 @@ class APIRequest extends DBObject{
 						}
 						ksort($forecast['days']);
 						$data = $forecast;
-						
 						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
 							$data = $data[$request[2]];
 						}
