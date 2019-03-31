@@ -31,7 +31,9 @@ class Forecast extends DBObject{
 		return $forecasts;
 	}
 	
-	public static function getSynthesis($dbh, $feedRunID, $location, $weighting = null, $restrict2sources = null){
+	public static function getSynthesis($dbh, $feedRun, $location, $weighting = null, $restrict2sources = null){
+		$feedRunID = $feedRun->id;
+		
 		if(empty($feedRunID))throw new Exception("Please supply a feed run ID");
 		if(empty($location))throw new Exception("Please supply a location");
 		$locationID = $location->id;
@@ -46,14 +48,14 @@ class Forecast extends DBObject{
 		}
 		$params['feed_run_id'] = $feedRunID;
 		$params['location_id'] = $forecastLocationID;
-		
 		$forecasts = static::createCollection($dbh, $params);
+		
 		//if there are no forecasts then throw
 		if(count($forecasts) == 0){
 			throw new Exception("No forecasts found for feed run $feedRunID and location $locationID");
 		}
 		
-		//we build weighting first
+		//we build weighting
 		if(empty($weighting))$weighting = array();
 		foreach($forecasts as $forecast){
 			$sourceID = $forecast->sourceID;
@@ -309,8 +311,6 @@ class Forecast extends DBObject{
 				} else {
 					//TODO: perhaps generate a position based on data here
 				}
-				
-				//first and last light
 			}
 		} //end set tide position
 		
@@ -320,6 +320,30 @@ class Forecast extends DBObject{
 		$synthesis['created'] = date('Y-m-d H:i:s '.self::tzoffset(), $synthesis['created']);
 		
 		return $synthesis;
+	}
+	
+	
+	private static function combineArrays($ar1, $ar2){
+		foreach($ar2 as $key=>$val){
+			if(!isset($ar1[$key]) || $ar1[$key] == ''){
+				$ar1[$key] = $val;
+			} else {
+				if(is_array($val)){
+					$ar1[$key] = self::combineArrays($ar1[$key], $ar2[$key]);
+				}
+			}
+		}
+		ksort($ar1);
+		return $ar1;
+	}
+	
+	//$syn1 takes priority
+	public static function combineSyntheses($syn1, $syn2){
+		//we only check days and hours
+		$syn1['days'] = self::combineArrays($syn1['days'], $syn2['days']);
+		$syn1['hours'] = self::combineArrays($syn1['hours'], $syn2['hours']);
+		
+		return $syn1;
 	}
 	
 	public function __construct($forecastData, $readFromDB = self::READ_MISSING_VALUES_ONLY){
