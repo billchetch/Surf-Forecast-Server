@@ -323,16 +323,19 @@ class Forecast extends DBObject{
 	}
 	
 	
-	private static function combineArrays($ar1, $ar2){
+	private static function combineArrays($ar1, $ar2, $key = ''){
+		if(!is_array($ar1))return $ar1;
+		
 		foreach($ar2 as $key=>$val){
 			if(!isset($ar1[$key]) || $ar1[$key] == ''){
 				$ar1[$key] = $val;
 			} else {
 				if(is_array($val)){
-					$ar1[$key] = self::combineArrays($ar1[$key], $ar2[$key]);
+					$ar1[$key] = self::combineArrays($ar1[$key], $ar2[$key], $key);
 				}
 			}
 		}
+		
 		ksort($ar1);
 		return $ar1;
 	}
