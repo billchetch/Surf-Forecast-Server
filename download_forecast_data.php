@@ -13,7 +13,7 @@ try{
 	$currentFeedRun = FeedRun::run($dbh, $errors);
 	
 	//now get stuff relating to tidal variation
-	Logger::log("Fetch tidal variation info");
+	Logger::info("Fetch tidal variation info");
 	$feeds = Feed::createCollection($dbh);
 	$sourceForTideInfo = Config::get('TIDE_INFO_SOURCE_ID', 4);
 	$source = Sources::createInstanceFromID($dbh, $sourceForTideInfo);
@@ -26,7 +26,7 @@ try{
 	
 	foreach($feeds2download as $feed){
 		$feed->url.= "&datums";
-		Logger::log("Fetching ".$feed->url);
+		Logger::info("Fetching ".$feed->url);
 		if($feed->download()){
 			$result = $feed->getFeedResultValues();
 			$data = json_decode($result['response'], true);
@@ -44,7 +44,7 @@ try{
 					$location  = Location::createInstanceFromID($dbh, $locationID);
 					$location->rowdata['max_tidal_variation'] = $datum['height'];
 					$location->write(); 
-					Logger::log("Dowloaded and extracted HAT of ".$data['height']." and saved to location ".$location->rowdata['location']);
+					Logger::info("Dowloaded and extracted HAT of ".$data['height']." and saved to location ".$location->rowdata['location']);
 				}
 			} //end datums loop
 		} 
