@@ -44,7 +44,7 @@ try{
 					$location  = Location::createInstanceFromID($dbh, $locationID);
 					$location->rowdata['max_tidal_variation'] = $datum['height'];
 					$location->write(); 
-					Logger::info("Dowloaded and extracted HAT of ".$data['height']." and saved to location ".$location->rowdata['location']);
+					Logger::info("Dowloaded and extracted HAT of ".$datum['height']." and saved to location ".$location->rowdata['location']);
 				}
 			} //end datums loop
 		} 
