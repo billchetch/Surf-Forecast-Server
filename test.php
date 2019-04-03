@@ -28,21 +28,41 @@ function convertNumber($val, $round = -1){  //scientific exponent
 Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
 $router = null;
 try{
-	/*$cls = 'TPLinkM7350Router';
-	$ip = '192.168.0.1';
-	$router = Router::createInstance($cls, $ip);
+	$errors = array();
+	$feeds = Feed::createCollection($dbh);
+	$sourceForTideInfo = Config::get('TIDE_INFO_SOURCE_ID', 4);
+	$source = Sources::createInstanceFromID($dbh, $sourceForTideInfo);
 	
-	$router->login();
-	$data = $router->getDeviceInfo();
-	Digest::initialise();
-	echo Digest::formatAssocArray($data);
-	$router->logout();
-	die;*/
+	$feeds2download = array();
+	foreach($feeds as $feed){
+		if($feed->rowdata['source_id'] == $sourceForTideInfo){
+			array_push($feeds2download, $feed);
+		}
+	}
 	
-	$tz = '+0800';
-	echo Utils::timezoneOffsetInSecs($tz);
-	
-	
+	foreach($feeds2download as $feed){
+		$feed->url.= "&datums";
+		if($feed->download()){
+			$result = $feed->getFeedResultValues();
+			$data = json_decode($result['response'], true);
+			if(json_last_error()){
+				array_push($errors, json_last_error());
+				continue;
+			}
+			if(!isset($data['datums'])){
+				array_push($errors, "datums property not found");
+				continue;
+			}
+			foreach($data['datums'] as $datum){
+				if($datum['name'] == 'HAT'){
+					$locationID = $feed->rowdata['location_id'];
+					$location  = Location::createInstanceFromID($dbh, $locationID);
+					$location->rowdata['max_tidal_variation'] = $datum['height'];
+					$location->write(); 
+				}
+			} //end datums loop
+		} 
+	} //end download loop
 } catch (Exception $e){
 	if($router && $router->loggedIn){
 		$router->logout();

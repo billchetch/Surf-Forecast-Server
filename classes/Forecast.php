@@ -17,7 +17,7 @@ class Forecast extends DBObject{
 		$t = Config::get('FORECASTS_TABLE');
 		$l = Config::get('LOCATIONS_TABLE');
 		static::$config['TABLE_NAME'] = $t;
-		$sql = "SELECT f.*, l.timezone, l.timezone_offset, l.latitude, l.longitude FROM $t f INNER JOIN $l l ON f.location_id=l.id";
+		$sql = "SELECT f.*, l.max_tidal_variation, l.timezone, l.timezone_offset, l.latitude, l.longitude FROM $t f INNER JOIN $l l ON f.location_id=l.id";
 		static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.id=:id";
 		static::$config['SELECT_ROW_SQL'] = $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id";
 		static::$config['SELECT_ROWS_SQL'] = $sql." WHERE f.feed_run_id=:feed_run_id AND f.location_id=:location_id";

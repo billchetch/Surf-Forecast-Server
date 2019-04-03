@@ -134,6 +134,14 @@ class APIRequest extends DBObject{
 						if($prevFeedRun && $prevFeedRun->id){
 							$prevForecast = Forecast::getSynthesis(self::$dbh, $prevFeedRun, $location, $weighting, $restrict2sources);
 							$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
+							$key = date("Y-m-d")." ".$forecast['timezone_offset'];
+							
+							//ugly hack here as the most recent forecast current day is sometimes not complete depending on when the download was done (e.g after first tide extreme)
+							//as a result we use the previous forecast day
+							//TODO: some logic that preserves the incomplete data on the current day rather than overwriting it
+							if(isset($prevForecast['days'][$key])){
+								$forecast['days'][$key] = $prevForecast['days'][$key];
+							}
 						}
 						$data = $forecast;
 						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
