@@ -96,6 +96,7 @@ SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude){
 		var $cb = $('<input type="checkbox" id="cb' + row.id + '"/>');
 		$.data($cb[0], 'id', row.id);
 		$td.append($cb);
+		$td.append(" (" + row.id + ")");
 		$tr.append($td);
 		$tr.data('id', row.id);
 		$tr.attr('id', 'row' + row.id);
