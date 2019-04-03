@@ -72,6 +72,7 @@ class Forecast extends DBObject{
 		$synthesis['created'] = null;
 		$synthesis['hours'] = array();
 		$synthesis['days'] = array();
+		$synthesis['max_tidal_variation'] = $forecasts[0]->rowdata['max_tidal_variation'];
 		$synthesis['timezone'] = $forecasts[0]->rowdata['timezone'];
 		$synthesis['timezone_offset'] = $forecasts[0]->rowdata['timezone_offset'];
 		$synthesis['timezone_offset_secs'] = Utils::timezoneOffsetInSecs($synthesis['timezone_offset']);

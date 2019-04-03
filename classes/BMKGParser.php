@@ -45,12 +45,12 @@ class BMKGParser extends Parser{
 			$row = array();
 			$this->assignForecastDateAndTime($row, $datetime[$i]);
 			
-			$row['swell_height'] = $this->convertNumber($data['hs'][$i], 2);
-			$row['swell_height_primary'] =  $this->convertNumber($data['phs01'][$i], 2);
-			$row['swell_height_secondary'] =  $this->convertNumber($data['phs02'][$i], 2);
-			$row['swell_period'] = $this->convertNumber($data['t01'][$i], 2);
-			$row['swell_period_primary'] =  $this->convertNumber($data['ptp01'][$i], 2);
-			$row['swell_period_secondary'] =  $this->convertNumber($data['ptp02'][$i], 2);
+			$row['swell_height'] = $this->convertNumber($data['hs'][$i], 2, 0, 100);
+			$row['swell_height_primary'] =  $this->convertNumber($data['phs01'][$i], 2, 0, 100);
+			$row['swell_height_secondary'] =  $this->convertNumber($data['phs02'][$i], 2, 0, 100);
+			$row['swell_period'] = $this->convertNumber($data['t01'][$i], 2, 0, 100);
+			$row['swell_period_primary'] =  $this->convertNumber($data['ptp01'][$i], 2, 0, 100);
+			$row['swell_period_secondary'] =  $this->convertNumber($data['ptp02'][$i], 2, 0, 100);
 			
 			//we need a bit of trig and pythag to get a direction and speed
 			$x = $this->convertNumber($data['diru'][$i]);
@@ -67,10 +67,11 @@ class BMKGParser extends Parser{
 			$forecast['hours'][$key] = $row;
 		}
 		
+		
 		return $forecast;
 	}
 	
-	private function convertNumber($val, $round = -1){  //scientific exponent
+	private function convertNumber($val, $round = -1, $min = null, $max = null, $default = null){  //scientific exponent
 		//e.g. 0.1908054709434509E+1
 		$val2return = null;
 		$pos = stripos($val, 'E');
@@ -90,6 +91,8 @@ class BMKGParser extends Parser{
 			$val2return = $val;
 		}
 		if($round > 0 && $val2return != null)$val2return = round($val2return, $round);
+		if($min !== null && $val2return < $min)$val2return = $default;
+		if($max !== null && $val2return > $max)$val2return = $default;
 		return $val2return;
 	}
 	
