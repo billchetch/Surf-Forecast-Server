@@ -25,7 +25,7 @@ function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = 
 	$mail->Username = Config::get('SMTP_USERNAME');
 	$mail->Password = Config::get('SMTP_PASSWORD');
 	
-	if($to)$maill->AddAddress($to);
+	if($to)$mail->AddAddress($to);
 	if($subject)$mail->Subject = $subject;
 	if($body)$mail->Body = $body;
 	if($from)$mail->From = $from;
