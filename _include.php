@@ -8,6 +8,26 @@ if(Config::get('ERROR_REPORTING')){
 	error_reporting(Config::get('ERROR_REPORTING'));
 }
 
+function getMailer($to = '', $subject = '', $body = ''){
+	require(Config::get('PHP_MAILER'));
+	
+	$s = Config::get('PHP_MAILER');
+	$pi = explode('/', $s);
+	array_pop($pi);
+	$langDir = implode('/', $pi);
+	
+	$mail = new PHPMailer();
+	$mail->SetLanguage('en', $langDir.'/');
+	$mail->Host = Config::get('SMTP_HOST');
+	$mail->SMTPSecure = Config::get('SMTP_SECURE');
+	$mail->Port = Config::get('SMTP_PORT');
+	$mail->SMTPAuth = true; 
+	$mail->Username = Config::get('SMTP_USERNAME');
+	$mail->Password = Config::get('SMTP_PASSWORD');
+	
+	return $mail;
+}
+
 $dbh = null;
 try{
 	
