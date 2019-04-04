@@ -9,7 +9,7 @@ try{
 	$subject = 'testing from AWS';
 	$body = 'a test from AWS';
 	$from = 'info@bulan-baru.com';
-	$mail = getMailer($to, $subject, $body);
+	$mail = getMailer($to, $subject, $body, $from);
 	
 	if(!$mail->Send()){
 		throw new Exception("Email send failed");
