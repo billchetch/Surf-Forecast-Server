@@ -9,9 +9,8 @@ try{
 	$subject = 'test';
 	$body = 'test';
 	$mail = getMailer($to, $subject, $body);
-	var_dump($mail); die;
 	
-	if($mail->Send()){
+	if(!$mail->Send()){
 		throw new Exception("Email send failed");
 	}
 	
