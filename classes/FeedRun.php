@@ -15,7 +15,7 @@ class FeedRun extends DBObject{
 		$t =  Config::get('FEED_RUNS_TABLE');
 		static::$config['TABLE_NAME'] = $t;
 		static::$config['SELECT_ROW_SQL'] = "SELECT * FROM $t WHERE status<>'COMPLETED'";
-		static::$config['SELECT_ROWS_SQL'] = "SELECT *, now() - created AS secs FROM $t WHERE status='COMPLETED' AND (error_report IS NULL OR error_report='') AND now()-created>=:secs ORDER BY id DESC LIMIT 100";
+		static::$config['SELECT_ROWS_SQL'] = "SELECT *, unix_timestamp(now()) - unix_timestamp(created) AS secs FROM $t WHERE status='COMPLETED' AND (error_report IS NULL OR error_report='') AND unix_timestamp(now())-unix_timestamp(created)>=:secs ORDER BY id DESC LIMIT 100";
 	}
 	
 	public static function getLastRun($dbh, $secs = 0){
