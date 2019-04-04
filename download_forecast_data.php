@@ -24,6 +24,7 @@ try{
 		if($feed->rowdata['source_id'] == $sourceForTideInfo)array_push($feeds2download, $feed);
 	}
 	
+	$locationsUpdatedCount = 0;
 	foreach($feeds2download as $feed){
 		$feed->url.= "&datums";
 		Logger::info("Fetching ".$feed->url);
@@ -45,10 +46,25 @@ try{
 					$location->rowdata['max_tidal_variation'] = $datum['height'];
 					$location->write(); 
 					Logger::info("Dowloaded and extracted HAT of ".$datum['height']." and saved to location ".$location->rowdata['location']);
+					$locationsUpdatedCount++;
 				}
 			} //end datums loop
 		} 
-	} //end download loop 
+	} //end download tidal variations for locations loop
+
+	//delete old feed results
+	$deletedFeedResultsCount = 0;
+	$daysOld = Config::get('DELETE_FEED_RESULTS_AFTER_DAYS', 90);
+	$results = FeedResult::getAlreadyParsed($dbh, $daysOld);
+	Logger::info("Deleting ".count($results)." parsed feed results more than $daysOld days old");
+	foreach($results as $result){
+		try{
+			$result->delete();
+			$deletedFeedResultsCount++;
+		} catch (Exception $e){
+			array_push($errors, $e->getMessage());
+		}
+	}
 	
 	Logger::info("Creating digest...");
 	$digest = Digest::create($dbh, "DOWNLOAD FORECAST DATA");
@@ -60,6 +76,9 @@ try{
 		$s = Digest::formatAssocArray($currentFeedRun->rowdata);
 		$digest->addDigestInfo("CURRENT RUN", $s);
 	}
+	
+	$digest->addDigestInfo("LOCATIONS UPDATED WITH MAX TIDAL VARIATION", $locationsUpdatedCount);
+	$digest->addDigestInfo("FEED RESULTS DELETED", $deletedFeedResultsCount);
 	
 	$digest->write();
 	Logger::info("Created digest");

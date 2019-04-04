@@ -28,6 +28,12 @@ class FeedResult extends DBObject{
 		static::$config['SELECT_ROWS_SQL'] = $sql;	
 	}
 	
+	public static function getAlreadyParsed($dbh, $days){
+		$sql = "SELECT * FROM ".Config::get('FEED_RESULTS_TABLE')." WHERE parsed=1 AND DATEDIFF(now(), parsed_on)>$days";
+		$results = static::createCollection($dbh, array('SQL'=>$sql));
+		return $results;
+	}
+	
 	/*
 	 * Local methods
 	 */
@@ -76,5 +82,7 @@ class FeedResult extends DBObject{
 		return $this->forecastData;
 		
 	}
+	
+	
 }
 ?>
