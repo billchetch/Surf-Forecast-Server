@@ -5,8 +5,10 @@ require('_include.php');
 Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREEN));
 $router = null;
 try{
-	
-	$mail = getMailer();
+	$to = 'bill@chetch.net';
+	$subject = 'test';
+	$body = 'test';
+	$mail = getMailer($to, $subject, $body);
 	var_dump($mail); die;
 	
 	if($mail->Send()){

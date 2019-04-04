@@ -8,7 +8,7 @@ if(Config::get('ERROR_REPORTING')){
 	error_reporting(Config::get('ERROR_REPORTING'));
 }
 
-function getMailer($to = '', $subject = '', $body = ''){
+function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = ''){
 	require(Config::get('PHP_MAILER'));
 	
 	$s = Config::get('PHP_MAILER');
@@ -24,6 +24,12 @@ function getMailer($to = '', $subject = '', $body = ''){
 	$mail->SMTPAuth = true; 
 	$mail->Username = Config::get('SMTP_USERNAME');
 	$mail->Password = Config::get('SMTP_PASSWORD');
+	
+	if($to)$maill->AddAddress($to);
+	if($subject)$mail->Subject = $subject;
+	if($body)$mail->Body = $body;
+	if($from)$mail->From = $from;
+	if($from)$mail->FromName = $fromName ? $fromName : $from;
 	
 	return $mail;
 }
