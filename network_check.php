@@ -180,6 +180,9 @@ try{
 		APIRequest::init($dbh, APIRequest::SOURCE_REMOTE);
 		$apiRequest = APIRequest::createRequest('digests');
 		$digests = Digest::getOutstanding();
+		$received = Digest::getReceived(); //if received then from within local network so we post to server to be sent on 
+		foreach($received as $d)array_push($digests, $d);
+		
 		Logger::info(count($digests)." outstanding digests....");
 		foreach($digests as $dg){
 			try{
