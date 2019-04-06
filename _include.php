@@ -27,12 +27,15 @@ function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = 
 	$mail->SMTPSecure = Config::get('SMTP_SECURE', 'tls');
 	$mail->Username = Config::get('SMTP_USERNAME');
 	$mail->Password = Config::get('SMTP_PASSWORD');
+	$mail->From = Config::get('EMAIL_FROM', 'info@bulan-baru.com');
 	
 	if($to)$mail->AddAddress($to);
 	if($subject)$mail->Subject = $subject;
 	if($body)$mail->Body = $body;
-	if($from)$mail->From = $from;
-	if($from)$mail->FromName = $fromName ? $fromName : $from;
+	if($from){
+		$mail->FromName = $fromName;
+		$mail->AddReplyTo($from, $fromName);
+	}
 	
 	return $mail;
 }
