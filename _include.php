@@ -18,10 +18,13 @@ function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = 
 	
 	$mail = new PHPMailer();
 	$mail->SetLanguage('en', $langDir.'/');
+	$mail->IsSMTP(); // enable SMTP
+ 	$mail->SMTPDebug = 1; //0 no debug
 	$mail->Host = Config::get('SMTP_HOST');
 	$mail->SMTPSecure = Config::get('SMTP_SECURE');
 	$mail->Port = Config::get('SMTP_PORT');
 	$mail->SMTPAuth = true; 
+	$mail->SMTPSecure = Config::get('SMTP_SECURE', 'tls');
 	$mail->Username = Config::get('SMTP_USERNAME');
 	$mail->Password = Config::get('SMTP_PASSWORD');
 	
