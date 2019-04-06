@@ -37,9 +37,12 @@ try{
 	}
 	
 	$to = Config::get('EMAIL_DIGESTS_TO', 'bill@bulan-baru.com');
+	$mail = getMailer($to, "", "", "sf@bulan-baru.com", "sf@bulan-baru.com");
+		
 	foreach($digests2mail as $subject=>$data){
-		$body = $data['body'];
-		if(mail($to, "BBSF: ".$subject, $body, "From: sf@bulan-baru.com")){
+		$mail->Subject = "BBSF: ".$subject;
+		$mail->Body = $data['body']; 
+		if($mail->Send()){
 			Logger::info("Emailed subject $subject to $to");
 			foreach($data['digests'] as $dg){
 				switch($dg->rowdata['status']){
