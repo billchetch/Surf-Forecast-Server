@@ -128,24 +128,23 @@ class APIRequest extends DBObject{
 						$restrict2sources = null; //possible parameter
 						$forecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun, $location, $weighting, $restrict2sources);
 						
-						$prevFeedRun = null;
 						try{
 							$secsOld = $lastFeedRun->rowdata['secs'] + 2*24*3600;
 							$prevFeedRun = FeedRun::getLastRun(self::$dbh, $secsOld);
+							if($prevFeedRun && $prevFeedRun->id){
+								$prevForecast = Forecast::getSynthesis(self::$dbh, $prevFeedRun, $location, $weighting, $restrict2sources);
+								$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
+								
+								//ugly hack here as the most recent forecast current day is sometimes not complete depending on when the download was done (e.g after first tide extreme)
+								//as a result we use the previous forecast day
+								//TODO: some logic that preserves the incomplete data on the current day rather than overwriting it
+								$key = date("Y-m-d")." ".$forecast['timezone_offset'];
+								if(isset($prevForecast['days'][$key])){
+									$forecast['days'][$key] = $prevForecast['days'][$key];
+								}
+							}
 						} catch (Exception $e){
 							
-						}
-						if($prevFeedRun && $prevFeedRun->id){
-							$prevForecast = Forecast::getSynthesis(self::$dbh, $prevFeedRun, $location, $weighting, $restrict2sources);
-							$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
-							
-							//ugly hack here as the most recent forecast current day is sometimes not complete depending on when the download was done (e.g after first tide extreme)
-							//as a result we use the previous forecast day
-							//TODO: some logic that preserves the incomplete data on the current day rather than overwriting it
-							$key = date("Y-m-d")." ".$forecast['timezone_offset'];
-							if(isset($prevForecast['days'][$key])){
-								$forecast['days'][$key] = $prevForecast['days'][$key];
-							}
 						}
 						
 						$data = $forecast;
