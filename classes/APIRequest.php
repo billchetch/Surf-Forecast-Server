@@ -128,9 +128,13 @@ class APIRequest extends DBObject{
 						$restrict2sources = null; //possible parameter
 						$forecast = Forecast::getSynthesis(self::$dbh, $lastFeedRun, $location, $weighting, $restrict2sources);
 						
-						$secsOld = $lastFeedRun->rowdata['secs'] + 2*24*3600;
-						$prevFeedRun = FeedRun::getLastRun(self::$dbh, $secsOld);
-						
+						$prevFeedRun = null;
+						try{
+							$secsOld = $lastFeedRun->rowdata['secs'] + 2*24*3600;
+							$prevFeedRun = FeedRun::getLastRun(self::$dbh, $secsOld);
+						} catch (Exception $e){
+							
+						}
 						if($prevFeedRun && $prevFeedRun->id){
 							$prevForecast = Forecast::getSynthesis(self::$dbh, $prevFeedRun, $location, $weighting, $restrict2sources);
 							$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
@@ -143,6 +147,7 @@ class APIRequest extends DBObject{
 								$forecast['days'][$key] = $prevForecast['days'][$key];
 							}
 						}
+						
 						$data = $forecast;
 						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
 							$data = $data[$request[2]];
