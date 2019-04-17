@@ -41,6 +41,7 @@ try{
 		$rowCount++;
 	}
 	if($rowCount > 0){
+		Logger::info("Calculated average and writing to client device");
 		foreach($avg as $k=>$v){
 			$avg[$k] = $v/$rowCount;
 		}

@@ -92,19 +92,29 @@ $message = 'message';
 $md5 = md5($message, false);
 ?>
 <html>
-
-<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.min.js"></script>
-<script type="text/javascript">
-window.onload = function(){
-	try{
-		var s = CryptoJS.MD5("<?php echo $message?>");
-		alert(s + " = <?php echo $md5; ?>");
-	} catch(e){
-		alert(e.message);
+<head>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.min.js"></script>
+	
+	<script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
+    <script src="https://api4.windy.com/assets/libBoot.js"></script>
+  	<style>
+  		#windy {
+  			width: 100%;
+  			height: 300px;
+  		}
+  	</style>
+	<script type="text/javascript">
+	window.onload = function(){
+		
 	}
-}
-</script>
+	</script>
+</head>
 <body>
+
+
+    
+</body>
+
 </body>
 </html>
