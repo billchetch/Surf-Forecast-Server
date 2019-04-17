@@ -464,7 +464,7 @@ class APIRequest extends DBObject{
 	    static::$lastCurlInfo = $info;
         	
 	    if($errno != 0){
-	    	throw new Exception("cURL error", $errno);
+	    	throw new Exception("cURL error: $error", $errno);
 	    } else if($info['http_code'] >= 400){
 	    	throw new Exception("HTTP Error ".$info['http_code'].' '.$data, $info['http_code']);
 		} else {
