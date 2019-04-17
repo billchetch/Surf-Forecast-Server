@@ -251,7 +251,7 @@ class APIRequest extends DBObject{
 					if(!empty($params['max_locations'])){
 						$data2return = array();
 						for($i = 0; $i < $params['max_locaations']; $i++){
-							array_push($data2return, $location);
+							array_push($data2return, $data[$i]);
 						}
 						$data = $data2return;
 					}
