@@ -125,6 +125,7 @@ try{
 		}
 		
 		// sources and locations in one go
+		$params['max_locations'] = Config::get('MAX_LOCATIONS', 10);
 		array_push($requests2make, 'sources');
 		array_push($requests2make, 'locations');
 		Logger::info("Getting sources and locations");
