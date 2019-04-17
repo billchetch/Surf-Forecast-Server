@@ -23,6 +23,7 @@ try{
 				
 				switch($requestMethod){
 					case 'GET':
+						ini_set("memory_limit",Config::get('MEMORY_LIMIT', "4096M"));
 						APIRequest::setUTC();
 						$data = APIRequest::processGetRequest($apiRequest, $params);
 						break;
