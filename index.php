@@ -87,6 +87,7 @@ try{
 	
 	header('HTTP/1.0 404 Not Found', true, 404);
 	echo "Exception: ".$e->getMessage();
+	die;
 }
 $message = 'message';
 $md5 = md5($message, false);
