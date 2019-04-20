@@ -36,7 +36,7 @@ class ClientDevice extends DBObject{
 	
 	public function getLocationCoords($useNetwork = true){
 		if($useNetwork){
-			if(empty($this->rowdata['device_network']))throw new Exception("No device network set for this device");
+			if(empty($this->rowdata['device_network']))throw new Exception("No device network set for this device ".$this->rowdata['device_id']);
 			$deviceNetwork = $this->rowdata['device_network'];
 			$deviceID = $this->rowdata['device_id'];
 			$networks = array($deviceNetwork);
