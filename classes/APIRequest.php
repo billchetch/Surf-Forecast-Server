@@ -52,7 +52,7 @@ class APIRequest extends DBObject{
 		$request = explode('/', $req);
 		switch($request[0]){
 			case 'locations-nearby':
-				$deviceID = $request[1];
+				$deviceID = isset($request[1]) ? $request[1] : null; //not used but might be in the future ...
 				GPS::init(self::$dbh);
 				$coords = GPS::getLatest();
 				if($coords){
