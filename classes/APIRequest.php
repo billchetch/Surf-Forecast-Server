@@ -53,12 +53,12 @@ class APIRequest extends DBObject{
 		switch($request[0]){
 			case 'locations-nearby':
 				$deviceID = $request[1];
-				$device = ClientDevice::createInstance(self::$dbh, array('device_id'=>$deviceID));
-				$coords = $device->getLocationCoords(Config::get('USE_NETWORK_LOCATION'));
+				GPS::init(self::$dbh);
+				$coords = GPS::getLatest();
 				if($coords){
 					$req = 'locations';
-					$params['lat'] = $coords['latitude'];
-					$params['lon'] = $coords['longitude'];
+					$params['lat'] = $coords->latitude;
+					$params['lon'] = $coords->longitude;
 				} else {
 					throw new Exception("Requesting nearby locations but cannot find location for device $deviceID");
 				}

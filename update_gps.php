@@ -41,17 +41,14 @@ try{
 		$rowCount++;
 	}
 	if($rowCount > 0){
-		Logger::info("Calculated average and writing to client device");
+		Logger::info("Calculated average and writing to GPS history");
 		foreach($avg as $k=>$v){
 			$avg[$k] = $v/$rowCount;
 		}
-		$avg['last_updated'] = date('Y-m-d H:i:s', $avg['updated']);
-		$avg['device_network'] = 'LOCAL';
 		$avg['location_accuracy'] = $avg['accuracy'];
-		$avg['device_id'] = 'server';
-
-		$device = ClientDevice::createInstance($dbh, $avg);
-		$device->write();
+		
+		GPS::init($dbh);
+		GPS::addCoords($avg);
 	}
 	
 	//save digest

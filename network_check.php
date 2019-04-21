@@ -84,24 +84,11 @@ try{
 	}
 	
 	//First we get latest GPS location of network and store for reporting purposes
-	$networkLocation = null;
-	if(Config::get('USE_NETWORK_LOCATION')){
-		$networks = array();
-		$ar = Config::getAsArray('FRIEND_NETWORKS');
-		if($ar && count($ar)){
-			ClientDevice::init($dbh);
-			$networkLocation = ClientDevice::getNetworkLocationCoords($ar[0]);
-			if($networkLocation){
-				GPS::init($dbh);
-				GPS::addCoords($networkLocation);
-				$coords = GPS::getRecent(3600); //get GPS for last hour
-				
-				//add to digest for reporting
-				foreach($coords as $gps){
-					$digest->addDigestInfo("GPS", $gps->getSummary(), 1);
-				}
-			}
-		}
+	GPS::init($dbh);
+	$serverLocation = GPS::getLatest();
+	$coords = GPS::getRecent(3600); //get GPS for last hour
+	foreach($coords as $gps){
+		$digest->addDigestInfo("GPS", $gps->getSummary(), 1);
 	}
 	
 	if($doNetworkUpdate && $internetAvailable){	
@@ -114,10 +101,10 @@ try{
 		$params = array(); //
 		
 		$latLon = null;
-		if($networkLocation && isset($networkLocation['latitude']) && isset($networkLocation['longitude'])){
+		if($serverLocation && isset($serverLocation['latitude']) && isset($serverLocation['longitude'])){
 			$params = array();
-			$params['lat'] = $networkLocation['latitude'];
-			$params['lon'] = $networkLocation['longitude'];
+			$params['lat'] = $serverLocation['latitude'];
+			$params['lon'] = $serverLocation['longitude'];
 			$latLon = $params['lat'].','.$params['lon'];
 			Logger::info("Using location data $latLon");
 		} else {
