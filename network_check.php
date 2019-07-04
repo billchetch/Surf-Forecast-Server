@@ -59,7 +59,7 @@ try{
 					die;
 				} else {
 					$router->logout();
-					$digest->addDigestInfo("INTERNET ROUTER", "Router available but postponing reboot to a later time");
+					$digest->addDigestInfo("INTERNET ROUTER", "Router available but postponing reboot to a later time. Last rebooted: $dtRA");
 				}
 			} catch (Exception $e){
 				$digest->addDigestInfo("INTERNET ROUTER", 'Exception: '.$e->getMessage());
@@ -101,10 +101,10 @@ try{
 		$params = array(); //
 		
 		$latLon = null;
-		if($serverLocation && isset($serverLocation['latitude']) && isset($serverLocation['longitude'])){
+		if($serverLocation && isset($serverLocation->latitude) && isset($serverLocation->longitude)){
 			$params = array();
-			$params['lat'] = $serverLocation['latitude'];
-			$params['lon'] = $serverLocation['longitude'];
+			$params['lat'] = $serverLocation->latitude;
+			$params['lon'] = $serverLocation->longitude;
 			$latLon = $params['lat'].','.$params['lon'];
 			Logger::info("Using location data $latLon");
 		} else {

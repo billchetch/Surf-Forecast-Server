@@ -88,7 +88,7 @@ SFManager.prototype.makeResultHeader = function(result){
 	
 }
 
-SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude){
+SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude, entityMap){
 	var $tr = $('<tr/>');
 	var $td;
 	if(row.id){
@@ -105,8 +105,18 @@ SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude){
 	ipts = ipts ? ipts.split(',') : [];
 	var $ipts = {};
 	for(var i = 0; i < ipts.length; i++){
-		var p = ipts[i]; 
-		$ipts[p] = $('<input type="text" value="' + (row[p] ? row[p] : '') + '" class="input-' + p + '" name="' + p + '"/>');
+		var p = ipts[i];
+		if(entityMap && typeof entityMap[p] != 'undefined' && entityMap[p] != null){
+			switch(entityMap[p].toLowerCase()){
+				case 'textarea':
+					$ipts[p] = $('<textarea class="input-' + p + '" name="' + p + '">' + (row[p] ? row[p] : '') + '</textarea>');
+					break;
+				default:
+					throw new Error("Cannot determine entity " + entityMap[p]);
+			}
+		} else {
+			$ipts[p] = $('<input type="text" value="' + (row[p] ? row[p] : '') + '" class="input-' + p + '" name="' + p + '"/>');
+		}
 		$.data($ipts[p][0], 'oldValue', row[p] == null ? '' : row[p]);
 	}
 	if(fields)fields = fields.split(',');
@@ -135,11 +145,22 @@ SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude){
 	return $tr;
 }
 
-SFManager.prototype.makeNewRowRow = function(ipt, defVals){
+SFManager.prototype.makeNewRowRow = function(ipt, defVals, entityMap){
 	var $tr = $('<tr/>');
 	var $td = $('<td/>');
 	var val = defVals && typeof defVals[ipt] != undefined ? defVals[ipt] : '';
-	var $ipt = $('<input class="input-' + ipt + '" name="'+ ipt + '" value="' + val + '"/>');
+	var $ipt;
+	if(entityMap && typeof entityMap[ipt] != 'undefined' && entityMap[ipt] != null){
+		switch(entityMap[ipt].toLowerCase()){
+			case 'textarea':
+				$ipt = $('<textarea class="input-' + ipt + '" name="' + ipt + '">' + val + '</textarea>');
+				break;
+			default:
+				throw new Error("Cannot determine entity " + entityMap[ipt]);
+		}
+	} else { 
+	 	$ipt = $('<input class="input-' + ipt + '" name="'+ ipt + '" value="' + val + '"/>');
+	}
 	$.data($ipt[0], 'oldValue', val == null ? '' : val);
 	$td.html(ipt);
 	$tr.append($td);
@@ -205,9 +226,9 @@ SFManager.prototype.updateDisplay = function(request, result){
 	case 'locations':
 		var $table = $('#rows-table');
 		$table.empty();
-		var ipts = 'location,latitude,longitude,timezone,timezone_offset,forecast_location_id,active';
+		var ipts = 'location,latitude,longitude,timezone,timezone_offset,forecast_location_id,active,description';
 		$.each(result, function(idx, row){
-			var $tr = T.makeResultTableRow(row, ipts, 'distance', true);
+			var $tr = T.makeResultTableRow(row, ipts, 'distance', true, {"description": 'textarea'});
 			$table.append($tr);
 		});
 		
@@ -215,7 +236,7 @@ SFManager.prototype.updateDisplay = function(request, result){
 		$table.empty();
 		ipts = ipts.split(',');
 		$.each(ipts, function(idx, ipt){
-			$table.append(T.makeNewRowRow(ipt));
+			$table.append(T.makeNewRowRow(ipt, null, {"description": 'textarea'}));
 		});
 
 		$table = $('#rows-header-table');
