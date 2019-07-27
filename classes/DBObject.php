@@ -170,6 +170,16 @@ class DBObject{
 		self::$dbh->query('SET time_zone = "+00:00"'); //UTC for all
 	}
 	
+	public static function tz(){
+		if(empty(self::$dbh))throw new Exception("Database has not been set");
+		$sql = "SELECT @@session.time_zone";
+		$stmt = self::$dbh->query($sql);
+		$row = $stmt->fetch();
+		$tz = $row[0];
+		if(strtoupper($tz) == 'SYSTEM')$tz = date_default_timezone_get();
+		return $tz;
+	}
+	
 	public static function tzoffset(){
 		if(empty(self::$dbh))throw new Exception("Database has not been set");
 		$sql = "SELECT CONCAT(IF(NOW()>=UTC_TIMESTAMP,'+','-'),TIME_FORMAT(TIMEDIFF(NOW(),UTC_TIMESTAMP),'%H%m'))";

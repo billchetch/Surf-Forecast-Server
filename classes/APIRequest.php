@@ -101,6 +101,7 @@ class APIRequest extends DBObject{
 					case 'about':
 						$data = array();
 						$data['now'] = static::now().' '.static::tzoffset();
+						$data['timezone'] = static::tz();
 						$data['timezone_offset'] = static::tzoffset();
 						$data['source'] = Config::get('API_SOURCE');
 						$data['api_remote_url'] = Config::get('API_REMOTE_URL');
@@ -108,11 +109,11 @@ class APIRequest extends DBObject{
 						GPS::init(self::$dbh);
 						$coords = GPS::getLatest();
 						if($coords){
-							$data['lat'] = $coords->latitude;
-							$data['lon'] = $coords->longitude;
+							$data['latitude'] = $coords->latitude;
+							$data['longitude'] = $coords->longitude;
 						} else {
-							$data['lat'] = null;
-							$data['lon'] = null;
+							$data['latitude'] = null;
+							$data['longitude'] = null;
 						}
 						break;
 						
