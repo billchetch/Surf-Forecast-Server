@@ -100,6 +100,7 @@ class APIRequest extends DBObject{
 					
 					case 'about':
 						$data = array();
+						$data['now'] = static::now();
 						$data['timezone_offset'] = static::tzoffset();
 						$data['source'] = Config::get('API_SOURCE');
 						$data['api_remote_url'] = Config::get('API_REMOTE_URL');
