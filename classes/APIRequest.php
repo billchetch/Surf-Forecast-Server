@@ -104,8 +104,17 @@ class APIRequest extends DBObject{
 						$data['source'] = Config::get('API_SOURCE');
 						$data['api_remote_url'] = Config::get('API_REMOTE_URL');
 						$data['use_network_location'] = Config::get('USE_NETWORK_LOCATION');
+						GPS::init(self::$dbh);
+						$coords = GPS::getLatest();
+						if($coords){
+							$data['lat'] = $coords->latitude;
+							$data['lon'] = $coords->longitude;
+						} else {
+							$data['lat'] = null;
+							$data['lon'] = null;
+						}
 						break;
-					
+						
 					case 'locations';
 						$locations = Location::createCollection(self::$dbh);
 						$data = static::collection2dataArray($locations);
