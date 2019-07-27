@@ -177,6 +177,7 @@ class DBObject{
 		$row = $stmt->fetch();
 		$tz = $row[0];
 		if(strtoupper($tz) == 'SYSTEM')$tz = date_default_timezone_get();
+		if($tz == "+00:00")$tz = "UTC";
 		return $tz;
 	}
 	
