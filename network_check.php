@@ -130,7 +130,8 @@ try{
 		$params = array();
 		Logger::info("Getting forecasts ".($latLon ? "using locations near $latLon" : 'for all locations'));
 		foreach($data['locations'] as $l){
-			$req = 'forecast/'.$l['id'];
+			//$req = 'forecast/'.$l['id'];
+			$req = 'forecast-daylight/'.$l['id']; //get only daylight relevant hours
 			array_push($requests2make, $req);
 		}
 		$params['requests'] = implode(',', $requests2make);

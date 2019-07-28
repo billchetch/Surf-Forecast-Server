@@ -5,6 +5,7 @@ Logger::init($dbh, array('log_name'=>'feed run', 'log_options'=>Logger::LOG_TO_D
 	
 try{
 	set_time_limit(60*60);
+	ini_set("memory_limit","2048M");
 	
 	//do feed run stuff
 	$lastFeedRun = FeedRun::getLastRun($dbh); //last successful feed run (used for digest)

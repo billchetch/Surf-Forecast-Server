@@ -128,6 +128,7 @@ class APIRequest extends DBObject{
 						break;
 						
 					case 'forecast':
+					case 'forecast-daylight':
 						if(!isset($request[1]))throw new Exception("No location provided");
 						$locationID = $request[1];
 						if(empty($locationID))throw new Exception("No location id present");
@@ -158,11 +159,34 @@ class APIRequest extends DBObject{
 							
 						}
 						
+						//Allow for specifying only hours within daylight
+						if($request[0] == 'forecast-daylight'){
+							$tzo = $forecast['timezone_offset'];
+							foreach($forecast['hours'] as $key=>$hour){
+								$dkey = explode(' ', $key);
+								if(count($dkey) != 3)conntinue;
+								$dkey = $dkey[0].' '.$dkey[2];
+								if(!isset($forecast['days'][$dkey]))continue;
+								
+								$day = $forecast['days'][$dkey];
+								$fl = trim(str_replace($tzo, '', $day['first_light']));
+								$ll = trim(str_replace($tzo, '', $day['last_light']));
+								$flh = (int)date("H", strtotime($fl));
+								$llh = (int)date("H", strtotime($ll));
+								
+								$hkey = trim(str_replace($tzo, '', $key));
+								$h = (int)date("H", strtotime($hkey));
+								if($h < $flh || $h > $llh + 1){
+									unset($forecast['hours'][$key]);
+								}
+							}
+						}
 						$data = $forecast;
-						if(isset($request[2]) && isset($data[$request[2]])){ //allow for array key referencing in URL
+						
+						//allow for array key referencing in URL
+						if(isset($request[2]) && isset($data[$request[2]])){ 
 							$data = $data[$request[2]];
 						}
-						
 						break;
 						
 					case 'device':
