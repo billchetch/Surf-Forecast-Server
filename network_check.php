@@ -112,7 +112,8 @@ try{
 		}
 		
 		// sources and locations in one go
-		$params['max_locations'] = Config::get('MAX_LOCATIONS', 10);
+		$maxLocations = Config::get('MAX_LOCATIONS', 15);
+		$params['max_locations'] = $maxLocations;
 		array_push($requests2make, 'sources');
 		array_push($requests2make, 'locations');
 		Logger::info("Getting sources and locations");
@@ -128,10 +129,14 @@ try{
 		//now get forecasts for those locations
 		$requests2make = array();
 		$params = array();
-		Logger::info("Getting forecasts ".($latLon ? "using locations near $latLon" : 'for all locations'));
+		$ep = Config::get('FORECAST_API_ENDPOINT', 'forecast-daylight');
+		if($latLon){
+			Logger::info("Getting forecasts (endpoint: $ep) using $maxLocations locations near $latLon");
+		} else {
+			Logger::info("Getting forecasts (endpoint: $ep) using $maxLocations locations");
+		}
 		foreach($data['locations'] as $l){
-			//$req = 'forecast/'.$l['id'];
-			$req = 'forecast-daylight/'.$l['id']; //get only daylight relevant hours
+			$req = $ep.'/'.$l['id']; //get only daylight relevant hours
 			array_push($requests2make, $req);
 		}
 		$params['requests'] = implode(',', $requests2make);
