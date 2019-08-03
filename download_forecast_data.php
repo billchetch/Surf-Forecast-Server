@@ -71,7 +71,7 @@ try{
 	$digest = Digest::create($dbh, "DOWNLOAD FORECAST DATA");
 	if($lastFeedRun){
 		$s = Digest::formatAssocArray($lastFeedRun->rowdata);
-		$digest->addDigestInfo("LAST SUCCESSFUL RUN", $s);
+		$digest->addDigestInfo("PREVIOUS SUCCESSFULLY COMPLETED RUN", $s);
 	}
 	if($currentFeedRun){
 		$s = Digest::formatAssocArray($currentFeedRun->rowdata);
