@@ -114,7 +114,7 @@ class APIRequest extends DBObject{
 							$suninfo = date_sun_info(time(), $data['latitude'], $data['longitude']);
 							$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_begin']));
 							$data['first_light'] = $dt->format('Y-m-d H:i:s').' '.$data['timezone_offset'];
-							$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_begin']));
+							$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_end']));
 							$data['last_light'] = $dt->format('Y-m-d H:i:s').' '.$data['timezone_offset'];
 						} else {
 							$data['latitude'] = null;
