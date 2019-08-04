@@ -130,12 +130,18 @@ class APIRequest extends DBObject{
 						$dt = $params['date'];
 						$lat = $params['lat'];
 						$lon = $params['lon'];
+						
+						//pass back data for convenience
+						$data['latitude'] = $lat;
+						$data['longitude'] = $lon; 
+						
 						$tzo = static::tzoffset();
 						$suninfo = date_sun_info(strtotime($dt), $lat, $lon);
 						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_begin']));
 						$data['first_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
 						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_end']));
 						$data['last_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
+						$data['date'] = $dt;
 						break;
 						
 					case 'locations';
@@ -253,6 +259,7 @@ class APIRequest extends DBObject{
 				break;
 				
 			case self::SOURCE_CACHE:
+				//this will attempt to read a request result direct from cache table
 				$apiRequest = static::createInstance(self::$dbh, array('request'=>$req));
 				try{
 					if(empty($apiRequest->id))throw new Exception("Request $req is not present in cache");
