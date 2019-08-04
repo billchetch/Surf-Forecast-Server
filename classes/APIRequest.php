@@ -141,7 +141,6 @@ class APIRequest extends DBObject{
 						$data['first_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
 						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_end']));
 						$data['last_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
-						$data['date'] = $dt;
 						break;
 						
 					case 'locations';
