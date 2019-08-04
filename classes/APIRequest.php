@@ -68,6 +68,7 @@ class APIRequest extends DBObject{
 			case 'device':
 			case 'devices':
 			case 'about':
+			case 'location-info':
 				static::$source = self::SOURCE_DATABASE;
 				break;
 				
@@ -120,6 +121,21 @@ class APIRequest extends DBObject{
 							$data['latitude'] = null;
 							$data['longitude'] = null;
 						}
+						break;
+						
+					case 'location-info':
+						if(!isset($params['date']))throw new Exception("No date passed in query");
+						if(!isset($params['lat']))throw new Exception("Latitude not passed in query");
+						if(!isset($params['lon']))throw new Exception("Longitude not passed in query");
+						$dt = $params['date'];
+						$lat = $params['lat'];
+						$lon = $params['lon'];
+						$tzo = static::tzoffset();
+						$suninfo = date_sun_info(strtotime($dt), $lat, $lon);
+						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_begin']));
+						$data['first_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
+						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_end']));
+						$data['last_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
 						break;
 						
 					case 'locations';
