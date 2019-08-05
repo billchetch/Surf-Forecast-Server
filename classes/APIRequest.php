@@ -130,8 +130,11 @@ class APIRequest extends DBObject{
 						$data['latitude'] = $lat;
 						$data['longitude'] = $lon; 
 						
+						//we extract the date part only of the request
+						$dto = explode(' ', $dt)[0];
 						$tzo = static::tzoffset();
-						$suninfo = date_sun_info(strtotime($dt), $lat, $lon);
+						$t = strtotime($dto);
+						$suninfo = date_sun_info($t, $lat, $lon);
 						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_begin']));
 						$data['first_light'] = $dt->format('Y-m-d H:i:s').' '.$tzo;
 						$dt = new DateTime(date('Y-m-d H:i:s', $suninfo['civil_twilight_end']));
