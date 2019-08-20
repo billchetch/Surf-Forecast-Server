@@ -9,9 +9,10 @@ class DLinkDWR932CRouter extends Router{
 	}
 	
 	function login(){
+		$pwd = Config::get('INTERNET_ROUTER_PASSWORD');
 		$params = array(
 			'type' => 'login',
-			'pwd' => Config::get('INTERNET_ROUTER_PASSWORD'),
+			'pwd' => md5($pwd),
 			'timeout'=>'300',
 			'user'=> Config::get('INTERNET_ROUTER_USERNAME')
 		);

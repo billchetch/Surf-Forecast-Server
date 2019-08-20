@@ -6,6 +6,7 @@ class Feed extends DBObject{
 	public $source;
 	public $location;
 	public $url;
+	public $payload;
 	public $data;
 	public $info;
 	public $error;
@@ -25,7 +26,8 @@ class Feed extends DBObject{
 		$sql.= "FROM $ftbl f INNER JOIN $stbl s ON f.source_id=s.id INNER JOIN $ltbl l ON f.location_id=l.id ";
 		
 		//single row
-		static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.source_id=:source_id AND f.id=:id";
+		//static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.source_id=:source_id AND f.id=:id";
+		static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.id=:id";
 		static::$config['SELECT_ROW_SQL'] = $sql." WHERE f.source_id=:source_id AND f.location_id=:location_id";
 		
 		//collection
@@ -50,6 +52,12 @@ class Feed extends DBObject{
 			$url = Config::replace($this->rowdata['url']); //pre-defined replacements
 			$url = Config::replaceKeysWithValues($url, $this->rowdata);
 			$this->url = $url;
+			
+			if(!empty($this->rowdata['payload'])){
+				$p = Config::replace($this->rowdata['payload']); //pre-defined replacements
+				$p = Config::replaceKeysWithValues($p, $this->rowdata);
+				$this->payload = $p;
+			}
 		} 
 		
 	}
@@ -64,6 +72,13 @@ class Feed extends DBObject{
 	    if($this->rowdata['encoding'])curl_setopt($ch, CURLOPT_ENCODING, $this->rowdata['encoding']);
 	    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
 		curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
+		
+		if(!empty($this->payload)){
+			curl_setopt($ch, CURLOPT_POST, 1);
+			//echo $this->payload; die;
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->payload);
+		}
+		
 	    $this->data = curl_exec($ch); 
 	    $this->error = curl_error($ch);
 	    $this->errno = curl_errno($ch);

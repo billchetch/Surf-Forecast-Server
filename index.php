@@ -98,9 +98,7 @@ $md5 = md5($message, false);
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.min.js"></script>
 	
-	<script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
-    <script src="https://api4.windy.com/assets/libBoot.js"></script>
-  	<style>
+	<style>
   		#windy {
   			width: 100%;
   			height: 300px;

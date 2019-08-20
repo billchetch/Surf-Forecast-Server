@@ -444,6 +444,7 @@ class APIRequest extends DBObject{
 							$vals['source_id'] = $s->rowdata['id'];
 							$vals['location_id'] = $id;
 							$vals['querystring'] = $s->rowdata['default_querystring'];
+							$vals['payload'] = $s->rowdata['default_payload'];
 							$vals['endpoint'] = $s->rowdata['default_endpoint'];
 							$f->setRowData($vals);
 							$f->write();

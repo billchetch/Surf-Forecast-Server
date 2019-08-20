@@ -417,7 +417,7 @@ body{
 	width: 200px;
 }
 
-.input-default_querystring, .input-querystring{
+.input-default_querystring, .input-querystring, .input-default_payload, .input-payload{
 	width: 350px;
 }
 	
