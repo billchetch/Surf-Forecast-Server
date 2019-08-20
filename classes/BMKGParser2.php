@@ -79,6 +79,11 @@ public function parse($result){
 			case 'wspd':
 				return round(1.852*$val, 2);
 				
+			case 'wdir':
+				$deg = round($val, 2);
+				return ($deg + 180) % 360;
+				
+				
 			default:
 				return round($val, 2);
 		}
