@@ -115,7 +115,8 @@ SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude, en
 					throw new Error("Cannot determine entity " + entityMap[p]);
 			}
 		} else {
-			$ipts[p] = $('<input type="text" value="' + (row[p] ? row[p] : '') + '" class="input-' + p + '" name="' + p + '"/>');
+			var v = row[p] ? row[p].replace(/"/g,"&quot;") : '';
+			$ipts[p] = $('<input type="text" value="' + v + '" class="input-' + p + '" name="' + p + '"/>');
 		}
 		$.data($ipts[p][0], 'oldValue', row[p] == null ? '' : row[p]);
 	}
@@ -250,8 +251,8 @@ SFManager.prototype.updateDisplay = function(request, result){
 	case 'feeds':
 		var $table = $('#rows-table');
 		$table.empty();
-		var ipts = 'endpoint,querystring';
-		var fields = 'id,endpoint,querystring,location';
+		var ipts = 'endpoint,querystring,payload';
+		var fields = 'id,endpoint,querystring,payload,location';
 		$.each(result, function(idx, row){
 			var $tr = T.makeResultTableRow(row, ipts, fields, false);
 			$table.append($tr);
