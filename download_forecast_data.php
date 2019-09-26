@@ -11,6 +11,7 @@ try{
 	$lastFeedRun = FeedRun::getLastRun($dbh); //last successful feed run (used for digest)
 	
 	$errors = array();
+	$currentFeedRun = null;
 	try{
 		$currentFeedRun = FeedRun::run($dbh, $errors);
 	} catch (Exception $e){
