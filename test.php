@@ -6,7 +6,7 @@ Logger::init($dbh, array('log_name'=>'test', 'log_options'=>Logger::LOG_TO_SCREE
 $router = null;
 try{
 	$id = 21;
-	/*$feed = Feed::createInstanceFromID($dbh, $id);
+	$feed = Feed::createInstanceFromID($dbh, $id);
 	if($feed->download()){
 		$vals = $feed->getFeedResultValues();
 		$r = json_decode($vals['response'], true);
@@ -20,7 +20,7 @@ try{
 	$result->write();
 	die;
 	
-	$id = 2271;*/
+	/*$id = 2271;
 	
 	$results = FeedResult::createCollection($dbh);
 	$result = $results[0];
@@ -28,7 +28,7 @@ try{
 	$result->parser = new BMKGParser2();
 	print_r($result->parse());
 	
-	echo "HERE"; die;
+	echo "HERE"; die;*/
 	
 } catch (Exception $e){
 	if($router && $router->loggedIn){

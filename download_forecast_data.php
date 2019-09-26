@@ -11,7 +11,11 @@ try{
 	$lastFeedRun = FeedRun::getLastRun($dbh); //last successful feed run (used for digest)
 	
 	$errors = array();
-	$currentFeedRun = FeedRun::run($dbh, $errors);
+	try{
+		$currentFeedRun = FeedRun::run($dbh, $errors);
+	} catch (Exception $e){
+		array_push($errors, $e->getMessage());
+	}
 	
 	//now get stuff relating to tidal variation
 	Logger::info("Fetch tidal variation info");

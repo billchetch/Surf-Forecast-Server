@@ -78,7 +78,7 @@ class FeedRun extends DBObject{
 						}
 					} else {
 						//failed to download
-						$status = $feed->info['http_code'].': '.$feed->error.' ('.$feed->errno.')';
+						$status = $feed->info['http_code'].': '.$feed->error.' ('.$feed->errno.') '.$feed->info;
 						Logger::warning("$status ... Failed to download ".$feed->url);
 						array_push($errors, "$status... Failed to download ".$feed->url);
 					}
