@@ -1,12 +1,11 @@
 <?php
-class Sources extends DBObject{
-	static public $config = array();
-	
+class Sources extends \chetch\db\DBObject{
 	public static function initialise(){
-		$t = Config::get("SOURCES_TABLE");
-		static::$config['TABLE_NAME'] = $t;
-		$sql = "SELECT * FROM $t s WHERE s.active=1";
-		static::$config['SELECT_ROWS_SQL'] = $sql;
+		$t = \chetch\Config::get("SOURCES_TABLE", 'sources');
+		self::setConfig('TABLE_NAME', $t);
+		$sql = "SELECT * FROM $t";
+		self::setConfig('SELECT_SQL', $sql);
+		self::setConfig('SELECT_DEFAULT_FILTER', 'active=1');
 	}
 }
 ?>

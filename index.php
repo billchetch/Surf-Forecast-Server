@@ -5,53 +5,22 @@ try{
 	if(empty($_GET['req']))throw new Exception("No request made");
 	$req = $_GET['req'];
 	$ar = explode('/', $req);
+	$queryString = str_ireplace('req='.$req.'&', '', $_SERVER['QUERY_STRING']);
+	$qsParams = array();
+	parse_str($queryString, $qsParams);
+	$requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
 	
 	switch($ar[0]){ 
 		case 'api': //API access
 			try{
 				array_shift($ar);
-				$apiRequest = implode('/',$ar);
-				if(stripos($apiRequest, '/') === 0)$apiRequest = substr($apiRequest, 1);
-				$queryString = str_ireplace('req='.$req.'&', '', $_SERVER['QUERY_STRING']);
-				$params = array(); //
-				parse_str($queryString, $params);
-				
-				APIRequest::init($dbh, Config::get('API_SOURCE'));
-				$requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
-				$allow = Config::getAsArray('API_ALLOW_REQUESTS', 'GET');
-				if(!in_array($requestMethod, $allow))throw new Exception("Cannot $requestMethod to this API ".$_SERVER['REQUEST_URI']);
-				
-				switch($requestMethod){
-					case 'GET':
-						ini_set("memory_limit",Config::get('MEMORY_LIMIT', "4096M"));
-						APIRequest::setUTC();
-						$data = APIRequest::processGetRequest($apiRequest, $params);
-						break;
-						
-					case 'PUT':
-						$data = file_get_contents('php://input'); //this is expected to be JSON
-						$data = json_decode($data, true);
-						$params = array_merge($params, $data);
-						$data = APIRequest::processPutRequest($apiRequest, $params);
-						break;
-						
-					case 'POST':
-						$data = file_get_contents('php://input'); //this is expected to be JSON
-						$data = json_decode($data, true);
-						$params = array_merge($params, $data);
-						$data = APIRequest::processPostRequest($apiRequest, $params);
-						break;
-						
-					case 'DELETE':
-						$data = APIRequest::processDeleteRequest($apiRequest, $params);
-						break;
-				}
-				 
-				//output
-				APIRequest::output($data);
-					
+				$apiCall = implode('/',$ar);
+				if(stripos($apiCall, '/') === 0)$apiCall = substr($apiCall, 1);
+				$payload = file_get_contents('php://input'); //this is expected to be JSON
+				$handler = SurfForecastAPIHandleRequest::createHandler($apiCall, $requestMethod, $qsParams, $payload);
+				$handler->handle();
 			} catch (Exception $e){
-				APIRequest::exception($e);
+				SurfForecastAPIHandleRequest::exception($e);
 				die;
 			}
 			die;

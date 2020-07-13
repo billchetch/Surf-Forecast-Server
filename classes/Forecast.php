@@ -1,54 +1,32 @@
 <?php
-class Forecast extends DBObject{
-	public static $config = array();
-	
-	public $feedRunID;
-	public $sourceID;
-	public $locationID;
-	public $timezoneOffset;
-	
-	public $forecastFrom;
-	public $forecastTo;
-	
-	public $hours = array(); //forecast data in the hours table
-	public $days = array(); //forecast data in the days table
-	
+use chetch\Config as Config;
+use chetch\Utils as Utils;
+use \Exception as Exception;
+
+class Forecast extends \chetch\db\DBObject{
 	static public function initialise(){
-		$t = Config::get('FORECASTS_TABLE');
-		$l = Config::get('LOCATIONS_TABLE');
-		static::$config['TABLE_NAME'] = $t;
+		$t = Config::get('FORECASTS_TABLE', 'forecasts');
+		$l = Config::get('LOCATIONS_TABLE', 'locations');
+		static::setConfig('TABLE_NAME', $t);
 		$sql = "SELECT f.*, l.max_tidal_variation, l.timezone, l.timezone_offset, l.latitude, l.longitude FROM $t f INNER JOIN $l l ON f.location_id=l.id";
-		static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.id=:id";
-		static::$config['SELECT_ROW_SQL'] = $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id";
-		static::$config['SELECT_ROWS_SQL'] = $sql." WHERE f.feed_run_id=:feed_run_id AND f.location_id=:location_id";
-	}
-	
-	public static function createCollection($dbh, $params = null){
-		$forecasts = parent::createCollection($dbh, $params);
-		for($i = 0; $i < count($forecasts); $i++){
-			$forecasts[$i]->read();
-		}
-		return $forecasts;
-	}
-	
-	public static function getSynthesis($dbh, $feedRun, $location, $weighting = null, $restrict2sources = null){
-		$feedRunID = $feedRun->id;
+		static::setConfig('SELECT_SQL', $sql);
+		static::setConfig('SELECT_DEFAULT_FILTER', "f.feed_run_id=:feed_run_id AND f.location_id=:location_id");
+		static::setConfig('SELECT_ROW_BY_ID_SQL', $sql." WHERE f.id=:id");
+		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id");
 		
+	}
+	
+	public static function getSynthesis($feedRun, $location, $weighting = null){
+		$feedRunID = $feedRun->getID();
 		if(empty($feedRunID))throw new Exception("Please supply a feed run ID");
 		if(empty($location))throw new Exception("Please supply a location");
-		$locationID = $location->id;
-		$forecastLocationID = !empty($location->rowdata['forecast_location_id']) ? $location->rowdata['forecast_location_id'] : $locationID;
+		$locationID = $location->getID();
+		$forecastLocationID = !empty($location->get('forecast_location_id')) ? $location->get('forecast_location_id') : $locationID;
 		
-		static::initialise();
 		$params = array();
-		$params['SQL'] = static::$config['SELECT_ROWS_SQL'];
-		if($restrict2sources){
-			if(is_array($restrict2sources))$restrict2sources = implode(',', $restrict2sources);
-			$params['SQL'].= " AND f.source_id IN ($restrict2sources)";
-		}
 		$params['feed_run_id'] = $feedRunID;
 		$params['location_id'] = $forecastLocationID;
-		$forecasts = static::createCollection($dbh, $params);
+		$forecasts = static::createCollection($params);
 		
 		//if there are no forecasts then throw
 		if(count($forecasts) == 0){
@@ -72,12 +50,13 @@ class Forecast extends DBObject{
 		$synthesis['created'] = null;
 		$synthesis['hours'] = array();
 		$synthesis['days'] = array();
-		$synthesis['max_tidal_variation'] = $forecasts[0]->rowdata['max_tidal_variation'];
-		$synthesis['timezone'] = $forecasts[0]->rowdata['timezone'];
-		$synthesis['timezone_offset'] = $forecasts[0]->rowdata['timezone_offset'];
+		$synthesis['max_tidal_variation'] = $forecasts[0]->get('max_tidal_variation');
+		$synthesis['timezone'] = $forecasts[0]->get('timezone');
+		$synthesis['timezone_offset'] = $forecasts[0]->get('timezone_offset');
 		$synthesis['timezone_offset_secs'] = Utils::timezoneOffsetInSecs($synthesis['timezone_offset']);
-		$synthesis['latitude'] = $forecasts[0]->rowdata['latitude'];
-		$synthesis['longitude'] = $forecasts[0]->rowdata['longitude'];
+
+		$synthesis['latitude'] = $forecasts[0]->get('latitude');
+		$synthesis['longitude'] = $forecasts[0]->get('longitude');
 		
 		$hourCols2weight = array('swell_height', 'swell_height_primary', 'swell_height_secondary', 'swell_period', 'swell_period_primary', 'swell_period_secondary', 'swell_direction', 'swell_direction_primary', 'swell_direction_secondary', 'wind_speed', 'wind_direction', 'tide_height', 'rating');
 		$dayCols2weight = array('tide_extreme_height_1', 'tide_extreme_time_1', 'tide_extreme_height_2', 'tide_extreme_time_2', 'tide_extreme_height_3', 'tide_extreme_time_3', 'tide_extreme_height_4', 'tide_extreme_time_4');
@@ -85,9 +64,11 @@ class Forecast extends DBObject{
 		$timeColumns = array('tide_extreme_time_1', 'tide_extreme_time_2', 'tide_extreme_time_3', 'tide_extreme_time_4');
 		
 		foreach($forecasts as $forecast){
-			$tf = strtotime($forecast->rowdata['forecast_from']);
-			$tt = strtotime($forecast->rowdata['forecast_to']);
-			$tc = strtotime($forecast->rowdata['created']);
+			$forecast->addDetails();
+
+			$tf = strtotime($forecast->get('forecast_from'));
+			$tt = strtotime($forecast->get('forecast_to'));
+			$tc = strtotime($forecast->get('created'));
 			if(!$synthesis['forecast_from'] || $tf < $synthesis['forecast_from'])$synthesis['forecast_from'] = $tf;
 			if(!$synthesis['forecast_to'] || $tt > $synthesis['forecast_to'])$synthesis['forecast_to'] = $tt;
 			if(!$synthesis['created'] || $tc > $synthesis['created'])$synthesis['created'] = $tc;
@@ -99,7 +80,7 @@ class Forecast extends DBObject{
 				}
 				
 				foreach($hourCols2weight as $col){
-					$val = $fh->rowdata[$col];
+					$val = $fh->get($col);
 					
 					if(!isset($synthesis['hours'][$key][$col])){
 						$synthesis['hours'][$key][$col] = array('weighted_values'=>0, 'weighted_sum'=>0, 'weighted_average'=>null, 'original_values'=>array());
@@ -132,7 +113,7 @@ class Forecast extends DBObject{
 				}
 				
 				foreach($dayCols2weight as $col){
-					$val = $fd->rowdata[$col];
+					$val = $fd->get($col);
 					
 					if(!isset($synthesis['days'][$key][$col])){
 						$synthesis['days'][$key][$col] = array('weighted_values'=>0, 'weighted_sum'=>0, 'weighted_average'=>null, 'original_values'=>array());
@@ -156,7 +137,7 @@ class Forecast extends DBObject{
 				}
 				
 				foreach($dayCols2copy as $col){
-					$synthesis['days'][$key][$col] = $fd->rowdata[$col];
+					$synthesis['days'][$key][$col] = $fd->get($col);
 				}
 				
 				//add first and last light
@@ -350,15 +331,19 @@ class Forecast extends DBObject{
 		return $syn1;
 	}
 	
-	public function __construct($forecastData, $readFromDB = self::READ_MISSING_VALUES_ONLY){
-		$rowdata = array();
-		$fields2copy = array('id', 'feed_run_id', 'location_id', 'source_id', 'forecast_from', 'forecast_to');
-		foreach($fields2copy as $f){
-			if(isset($forecastData[$f])){
-				$rowdata[$f] = $forecastData[$f];
-			}	
-		}
+	//Instance fiellds and methods
+	public $feedRunID;
+	public $sourceID;
+	public $locationID;
+	public $timezoneOffset;
+	
+	public $forecastFrom;
+	public $forecastTo;
+	
+	public $hours = array(); //forecast data in the hours table
+	public $days = array(); //forecast data in the days table
 
+	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
 		parent::__construct($rowdata, $readFromDB);
 		
 		$this->assignR2V($this->feedRunID, 'feed_run_id');
@@ -368,23 +353,23 @@ class Forecast extends DBObject{
 		$this->assignR2V($this->forecastTo, 'forecast_to');
 		$this->assignR2V($this->timezoneOffset, 'timezone_offset');
 		
-		if(isset($forecastData['hours'])){
+		/*if(isset($forecastData['hours'])){
 			foreach($forecastData['hours'] as $key=>$fd){
-				$fhours = ForecastHour::createInstance(self::$dbh, $fd, false);
-				if(isset($this->hours[$key]))$fhours->setID($this->hours[$key]->id);
+				$fhours = ForecastHour::createInstance($fd, false);
+				if(isset($this->hours[$key]))$fhours->setID($this->hours[$key]->getID());
 				$this->hours[$key] = $fhours;
 			}
 		}
 		if(isset($forecastData['days'])){
 			foreach($forecastData['days'] as $key=>$fd){
-				$fdays = ForecastDay::createInstance(self::$dbh, $fd, false);
-				if(isset($this->days[$key]))$fdays->setID($this->days[$key]->id);
+				$fdays = ForecastDay::createInstance($fd, false);
+				if(isset($this->days[$key]))$fdays->setID($this->days[$key]->getID());
 				$this->days[$key] = $fdays; 
 			}
-		}
+		}*/
 	}
 	
-	public function write(){
+	public function write($readAgain = false){
 		$outerTransaction = self::$dbh->inTransaction();
 		try{
 			if(!$outerTransaction)self::$dbh->beginTransaction();
@@ -404,20 +389,20 @@ class Forecast extends DBObject{
 		}
 	}
 	
-	public function read(){
-		parent::read();
+	public function addDetails(){
+		if(!empty($this->getID())){
+			$this->hours = array();
+			$this->days = array();
+			$tz = $this->get('timezone_offset');
 		
-		if(!empty($this->id)){
-			$tz = $this->rowdata['timezone_offset'];
-		
-			$params = array('forecast_id'=>$this->id);
-			$hours = ForecastHour::createCollection(self::$dbh, $params);
+			$params = array('forecast_id'=>$this->getID());
+			$hours = ForecastHour::createCollection($params);
 			foreach($hours as $fh){
 				$key = $fh->key.' '.$tz;
 				$this->hours[$key] = $fh;
 			}
 			
-			$days = ForecastDay::createCollection(self::$dbh, $params);
+			$days = ForecastDay::createCollection($params);
 			foreach($days as $fd){
 				$key = $fd->key.' '.$tz;
 				$this->days[$key] = $fd;
@@ -426,9 +411,7 @@ class Forecast extends DBObject{
 	}
 }
 
-class ForecastDetail extends DBObject{
-	public static $config = array();
-	
+class ForecastDetail extends \chetch\db\DBObject{
 	public $forecastID;
 	public $key;
 	
@@ -452,10 +435,9 @@ class ForecastHour extends ForecastDetail{
 	
 	static public function initialise(){
 		$t = Config::get('FORECAST_HOURS_TABLE');
-		static::$config['TABLE_NAME'] = $t;
-		
-		$sql = "SELECT * FROM $t WHERE forecast_id=:forecast_id"; 
-		static::$config['SELECT_ROWS_SQL'] = $sql;
+		static::setConfig('TABLE_NAME', $t);
+		static::setConfig('SELECT_SQL', "SELECT * FROM $t"); 
+		static::setConfig('SELECT_DEFAULT_FILTER', "forecast_id=:forecast_id");
 	}
 	
 	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
@@ -475,10 +457,9 @@ class ForecastDay extends ForecastDetail{
 	
 	static public function initialise(){
 		$t = Config::get('FORECAST_DAYS_TABLE');
-		static::$config['TABLE_NAME'] = $t;
-		
-		$sql = "SELECT * FROM $t WHERE forecast_id=:forecast_id"; 
-		static::$config['SELECT_ROWS_SQL'] = $sql;
+		static::setConfig('TABLE_NAME', $t);
+		static::setConfig('SELECT_SQL', "SELECT * FROM $t"); 
+		static::setConfig('SELECT_DEFAULT_FILTER', "forecast_id=:forecast_id");
 	}
 	
 	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){

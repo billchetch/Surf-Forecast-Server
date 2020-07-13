@@ -1,8 +1,38 @@
 <?php
 spl_autoload_register(function ($class) {
-    include 'classes/' . $class . '.php';
+	$dir = dirname(__FILE__); //the directory of this script (not the script that includes this)
+	
+	$class = str_replace("\\", "/", $class);
+	
+	$paths = array('../common/php/classes', '../../common/php/classes', 'classes');
+	if(defined('_CLASS_PATHS_')){
+		$paths = array_merge($paths, explode(',', _CLASS_PATHS_));
+	}
+	
+	foreach($paths as $path){
+		$classdir = realpath(dirname(__FILE__).'/'.$path);
+		if(!is_dir($classdir))continue;
+
+		$fn = $classdir.'/'.$class.'.php';
+		if(file_exists($fn)){
+			include $fn;
+			return;
+		}
+		
+		$it = new RecursiveDirectoryIterator($classdir);
+		foreach(new RecursiveIteratorIterator($it) as $file){
+			if(basename($file) == $class.'.php'){
+				include $file;
+				return;
+			}
+		}
+	} //end looping through paths
 });
+
+
 require('_config.php');
+
+use chetch\Config as Config;
 
 if(Config::get('ERROR_REPORTING')){
 	error_reporting(Config::get('ERROR_REPORTING'));
@@ -40,18 +70,19 @@ function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = 
 	return $mail;
 }
 
+use chetch\db\DB as DB;
+use chetch\sys\Logger as Logger;
 
-$dbh = null;
 try{
 	
 	date_default_timezone_set('UTC');
 
-	$host = Config::get('DBHOST');
-	$dbname = Config::get('DBNAME');
+	DB::connect(Config::get('DBHOST'), Config::get('DBNAME'), Config::get('DBUSERNAME'), Config::get('DBPASSWORD'));
+	DB::setUTC();
+
+	Logger::setLog(basename($_SERVER['PHP_SELF'], ".php"));
 	
-	$dbh = new PDO("$host;dbname=$dbname", Config::get('DBUSERNAME'), Config::get('DBPASSWORD'));
-	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	
-	
+
 } catch (Exception $e){
 	echo "exception: ".$e->getMessage();
 	die;

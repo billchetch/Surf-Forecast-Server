@@ -1,37 +1,37 @@
 <?php
-class Digest extends DBObject{
+use \chetch\Config as Config;
+
+class Digest extends chetch\db\DBObject{
 	const STATUS_OUTSTANDING = 0;
 	const STATUS_EMAILED = 1;
 	const STATUS_POSTED = 2;
 	const STATUS_RECEIVED = 4;
 	const STATUS_RECEIVED_AND_EMAILED = 5;
 	
-	public static $config = array();
-	
 	private $digestInfo = array();
 	
 	public static function initialise(){
-		$t = Config::get('SYS_DIGESTS_TABLE');
-		static::$config['TABLE_NAME'] = $t;
-		static::$config['LINE_FEED'] = Config::get('DIGEST_LINE_FEED', "\n");
+		$t = Config::get('SYS_DIGESTS_TABLE', 'digests');
+		static::setConfig('TABLE_NAME', $t);
+		static::setConfig('LINE_FEED', Config::get('DIGEST_LINE_FEED', "\n"));
 		
 		//collection
-		$sql = "SELECT *,CONVERT_TZ(created, @@session.time_zone, '+00:00') AS utc_created FROM $t";
-		static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE id=:id";
-		
-		static::$config['SELECT_ROWS_SQL'] = $sql." WHERE status=:status ORDER BY IF(source_created IS NULL,created,source_created)";
+		$sql = "SELECT *, CONVERT_TZ(created, @@session.time_zone, '+00:00') AS utc_created FROM $t";
+		static::setConfig('SELECT_SQL', $sql);
+		static::setConfig('SELECT_DEFAULT_FILTER', "status=:status");
+		static::setConfig('SELECT_DEFAULT_SORT', "IF(source_created IS NULL,created,source_created)");
 	}
 	
-	public static function create($dbh, $title){
+	public static function create($title){
 		$params = array();
 		$params['digest_title'] = $title;
-		return parent::createInstance($dbh, $params, false);
+		return parent::createInstance($params, false);
 	}
 	
 	public static function getStatus($status){
 		$params = array();
 		$params['status'] = $status;
-		$digests = self::createCollection(self::$dbh, $params);
+		$digests = self::createCollection($params);
 		return $digests;
 	}
 	
@@ -43,14 +43,14 @@ class Digest extends DBObject{
 		return self::getStatus(self::STATUS_RECEIVED);
 	}
 	
-	public static function addDigest($dbh, $params){
-		$digest = parent::createInstance($dbh, $params, false);
+	public static function addDigest($params){
+		$digest = parent::createInstance($params, false);
 		$digest->write();
 		return $digest;
 	}
 	
 	public static function formatAssocArray($ar, $delimiter = null){
-		if(!$delimiter)$delimiter = static::$config['LINE_FEED'];
+		if(!$delimiter)$delimiter = static::getConfig('LINE_FEED');
 		$s = '';
 		foreach($ar as $k=>$v){
 			if(is_array($v)){
@@ -65,7 +65,7 @@ class Digest extends DBObject{
 		if(!isset($this->digestInfo[$area])){
 			$this->digestInfo[$area] = $info;
 		} else {
-			$lf = static::$config['LINE_FEED'];
+			$lf = static::getConfig('LINE_FEED');
 			$this->digestInfo[$area].= str_repeat($lf, $lfcount).$info;
 		}
 	}
@@ -75,7 +75,7 @@ class Digest extends DBObject{
 		if($area){
 			return isset($this->digestInfo[$area]) ? $this->digestInfo[$area] : ''; 
 		} else {
-			$lf = static::$config['LINE_FEED']; 
+			$lf = static::getConfig('LINE_FEED'); 
 			foreach($this->digestInfo as $area=>$info){
 				$s.= $area.$lf.$lf;
 				$s.= $info.$lf.$lf;
@@ -88,18 +88,18 @@ class Digest extends DBObject{
 		$this->rowdata['status'] = $status;
 	}
 	
-	public function write(){
-		if(empty($this->rowdata['digest']) && !empty($this->digestInfo)){
-			$this->rowdata['digest'] = $this->getDigestInfo();
+	public function write($readAgain = false){
+		if(!$this->get('digest') && !empty($this->digestInfo)){
+			$this->set('digest', $this->getDigestInfo());
 		}
 		return parent::write();
 	}
 	
 	public function getPostData(){
-		if($this->id && !isset($this->rowdata['created'])){
+		if($this->id && !$this->get('created')){
 			$this->read();
 		}
-		$data = $this->rowdata;
+		$data = $this->getRowData();
 		//$data['source_created'] = $data['utc_created'];
 		$data['source_created'] = $data['created'];
 		$data['source_timezone_offset'] = $this->tzoffset();

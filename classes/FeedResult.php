@@ -1,7 +1,7 @@
 <?php
-class FeedResult extends DBObject{
-	
-	public static $config = array();
+use \chetch\Config as Config;
+
+class FeedResult extends chetch\db\DBObject{
 	
 	public $parser;
 	public $source;
@@ -16,36 +16,36 @@ class FeedResult extends DBObject{
 	 */
 	
 	public static function initialise(){
-		static::$config['TABLE_NAME'] = Config::get('FEED_RESULTS_TABLE');
+		$rtbl = Config::get('FEED_RESULTS_TABLE', 'feed_results');
+		static::setConfig('TABLE_NAME', $rtbl);
 		
 		$sql = "SELECT r.*, f.source_id, f.location_id, f.response_format, s.source, s.parser, l.timezone ";
-		$rtbl = static::$config['TABLE_NAME'];
-		$ftbl = Config::get('FEEDS_TABLE');
-		$stbl = Config::get('SOURCES_TABLE');
-		$ltbl = Config::get('LOCATIONS_TABLE');
+		$ftbl = Config::get('FEEDS_TABLE', 'feeds');
+		$stbl = Config::get('SOURCES_TABLE', 'sources');
+		$ltbl = Config::get('LOCATIONS_TABLE', 'locations');
 		$sql.= "FROM $rtbl r INNER JOIN $ftbl f ON r.feed_id=f.id INNER JOIN $stbl s ON f.source_id=s.id INNER JOIN $ltbl l ON f.location_id=l.id ";
-		$sql.= "WHERE r.parsed=0";
-		static::$config['SELECT_ROWS_SQL'] = $sql;	
+		static::setConfig('SELECT_SQL', $sql);
+		static::setConfig('SELECT_DEFAULT_FILTER', 'r.parsed=0');
 	}
 	
-	public static function getAlreadyParsed($dbh, $days){
-		$sql = "SELECT * FROM ".Config::get('FEED_RESULTS_TABLE')." WHERE parsed=1 AND DATEDIFF(now(), parsed_on)>$days";
-		$results = static::createCollection($dbh, array('SQL'=>$sql));
+	public static function getAlreadyParsed($days){
+		$filter = "parsed=1 AND DATEDIFF(now(), parsed_on)>$days";
+		$results = static::createCollection(null, $filter); // array('SQL'=>$sql));
 		return $results;
 	}
 	
 	/*
-	 * Local methods
+	 * Instance methods
 	 */
 	
 	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
 		parent::__construct($rowdata, $readFromDB);
 		
-		if(!empty($this->rowdata['source'])){
-			if(empty($this->rowdata['parser'])){
-				$cls = ucwords(str_replace(' ', '', $this->rowdata['source'])).'Parser';
+		if(!empty($this->get('source'))){
+			if(empty($this->get('parser'))){
+				$cls = ucwords(str_replace(' ', '', $this->get('source'))).'Parser';
 			} else {
-				$cls = $this->rowdata['parser'];
+				$cls = $this->get('parser');
 			}
 			if(empty($cls))throw new Exception("No parser class found");
 			if(!class_exists($cls))throw new Exception("Class $cls is not found");
@@ -79,10 +79,7 @@ class FeedResult extends DBObject{
 			$this->forecastData['source_id'] = $this->sourceID;
 		}
 		
-		return $this->forecastData;
-		
+		return $this->forecastData;	
 	}
-	
-	
 }
 ?>

@@ -1,11 +1,11 @@
 <?php
-class Location extends DBObject{
-	static public $config = array();
-	
+class Location extends \chetch\db\DBObject{
 	public static function initialise(){
-		$t = Config::get("LOCATIONS_TABLE");
-		static::$config['TABLE_NAME'] = $t;
-		$sql = "SELECT * FROM $t l WHERE l.active=1";
-		static::$config['SELECT_ROWS_SQL'] = $sql;
+		$t = \chetch\Config::get("LOCATIONS_TABLE", 'locations');
+		self::setConfig('TABLE_NAME', $t);
+		$sql = "SELECT * FROM $t";
+		self::setConfig('SELECT_SQL', $sql);
+		self::setConfig('SELECT_DEFAULT_FILTER', 'active=1');
 	}
 }
+?>

@@ -1,7 +1,7 @@
 <?php
-class Feed extends DBObject{
-	
-	public static $config = array();
+use \chetch\Config as Config;
+
+class Feed extends chetch\db\DBObject{
 	
 	public $source;
 	public $location;
@@ -16,22 +16,22 @@ class Feed extends DBObject{
 	 * static methods
 	 */
 	public static function initialise(){
-		static::$config['TABLE_NAME'] = Config::get('FEEDS_TABLE');
+		$ftbl = Config::get('FEEDS_TABLE', 'feeds');
+		static::setConfig('TABLE_NAME', $ftbl);
 		
 		//base SQL
-		$ftbl = static::$config['TABLE_NAME'];
 		$stbl = Config::get('SOURCES_TABLE');
 		$ltbl = Config::get('LOCATIONS_TABLE');
 		$sql = "SELECT f.*, s.source, s.api_key, l.location, l.latitude, l.longitude, concat(s.base_url, IF(f.endpoint IS NOT NULL, concat('/', f.endpoint), ''), IF(f.querystring IS NOT NULL, concat('?', f.querystring), '')) AS url ";
 		$sql.= "FROM $ftbl f INNER JOIN $stbl s ON f.source_id=s.id INNER JOIN $ltbl l ON f.location_id=l.id ";
 		
+		static::setConfig('SELECT_SQL', $sql);
+		static::setConfig('SELECT_DEFAULT_FILTER', "f.active=1 AND s.active = 1 AND l.active=1 AND l.forecast_location_id IS NULL ORDER BY location"); 
+
 		//single row
 		//static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.source_id=:source_id AND f.id=:id";
-		static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.id=:id";
-		static::$config['SELECT_ROW_SQL'] = $sql." WHERE f.source_id=:source_id AND f.location_id=:location_id";
-		
-		//collection
-		static::$config['SELECT_ROWS_SQL'] = $sql." WHERE f.active=1 AND s.active = 1 AND l.active=1 AND l.forecast_location_id IS NULL ORDER BY location"; 
+		static::setConfig('SELECT_ROW_BY_ID_SQL', $sql." WHERE f.id=:id");
+		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.source_id=:source_id AND f.location_id=:location_id");
 	}
 	
 	
@@ -45,17 +45,17 @@ class Feed extends DBObject{
 		$this->assignR2V($this->source, 'source');
 		$this->assignR2V($this->location, 'location');
 			
-		if($this->id && $readFromDB){
-			if(empty($this->rowdata['url']))throw new Exception("No URL supplied for feed");
+		if($this->getID() && $readFromDB){
+			if(empty($this->get('url')))throw new Exception("No URL supplied for feed");
 		}
-		if(!empty($this->rowdata) && !empty($this->rowdata['url'])){
-			$url = Config::replace($this->rowdata['url']); //pre-defined replacements
-			$url = Config::replaceKeysWithValues($url, $this->rowdata);
+		if($this->get('url')){
+			$url = Config::replace($this->get('url')); //pre-defined replacements
+			$url = Config::replaceKeysWithValues($url, $this->getRowData());
 			$this->url = $url;
 			
-			if(!empty($this->rowdata['payload'])){
-				$p = Config::replace($this->rowdata['payload']); //pre-defined replacements
-				$p = Config::replaceKeysWithValues($p, $this->rowdata);
+			if($this->get('payload')){
+				$p = Config::replace($this->get('payload')); //pre-defined replacements
+				$p = Config::replaceKeysWithValues($p, $this->getRowData());
 				$this->payload = $p;
 			}
 		} 
@@ -69,7 +69,7 @@ class Feed extends DBObject{
 		curl_setopt($ch, CURLOPT_URL, $this->url); 
 	    curl_setopt($ch, CURLOPT_HEADER, false); 
 	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	    if($this->rowdata['encoding'])curl_setopt($ch, CURLOPT_ENCODING, $this->rowdata['encoding']);
+	    if($this->get('encoding'))curl_setopt($ch, CURLOPT_ENCODING, $this->get('encoding'));
 	    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
 		curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
 		
