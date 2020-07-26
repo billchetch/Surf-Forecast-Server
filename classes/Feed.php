@@ -37,8 +37,8 @@ class Feed extends chetch\db\DBObject{
 	/*
 	 * Instance methods
 	 */
-	public function read($requireExistence = false){
-		parent::read($requireExistence);
+	protected function assignRowData($rowdata){
+		parent::assignRowData($rowdata);
 		
 		$this->assignR2V($this->source, 'source');
 		$this->assignR2V($this->location, 'location');

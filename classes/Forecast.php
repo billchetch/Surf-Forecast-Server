@@ -348,8 +348,8 @@ class Forecast extends \chetch\db\DBObject{
 	public $hours = array(); //forecast data in the hours table
 	public $days = array(); //forecast data in the days table
 
-	public function read($requireExistence = false){
-		parent::read($requireExistence);
+	protected function assignRowData($rowdata){
+		parent::assignRowData($rowdata);
 		
 		$this->assignR2V($this->feedRunID, 'feed_run_id');
 		$this->assignR2V($this->locationID, 'location_id');
