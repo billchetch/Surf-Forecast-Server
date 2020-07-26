@@ -37,7 +37,6 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 	}
 	
 	protected function processGetRequest($request, $params){
-		
 		$this->translateGetRequest($request, $params);	
 		
 		$data = array();
