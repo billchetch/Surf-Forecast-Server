@@ -38,8 +38,8 @@ class FeedResult extends chetch\db\DBObject{
 	 * Instance methods
 	 */
 	
-	public function reqd($requireExistence = false){
-		parent::read($requireExistence);
+	public function assignRowData($rowdata){
+		parent::assignRowData($rowdata);
 		
 		if(!empty($this->get('source'))){
 			if(empty($this->get('parser'))){

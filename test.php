@@ -14,17 +14,21 @@ try{
 	$feed->download();
 	print_r($feed->data);*/
 
-	$feeds = Feed::createCollection();
-	echo "Downloading ".count($feeds)." feeds".$lf;
+	$results = FeedResult::createCollection();
+	echo "Parsing ".count($results)." results".$lf;
 				
-	foreach($feeds as $feed){
-		echo $feed->url.$lf;
+				
+	foreach($results as $result){
+		$d = $result->parse();
+		print_r($d);
+		echo $lf;
+		break;
 	}
 	die;
 } catch (Exception $e){
 	if($router && $router->loggedIn){
 		$router->logout();
 	}
-	Logger::exception($e->getMessage());
+	echo $e->getMessage();
 }
 ?>

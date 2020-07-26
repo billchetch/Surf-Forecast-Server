@@ -151,7 +151,7 @@ class FeedRun extends \chetch\db\DBObject{
 					$result->write();
 				}
 				
-				$statusData['parsed_on'] = self::now();
+				$statusData['parsed_on'] = self::now(false);
 				if(count($errors))$statusData['error_report'] = implode("\n", $errors);
 				$feedRun->setStatus('PARSED', $statusData);
 			}		
@@ -159,10 +159,10 @@ class FeedRun extends \chetch\db\DBObject{
 			if($feedRun->status == 'PARSED'){
 				if(count($errors)){
 					$statusData['error_report'] = implode("\n", $errors);
-					Logger::info("Completed Run with ".count($errors)." errors");
+					$log->info("Completed Run with ".count($errors)." errors");
 				} else {
 					$statusData['error_report'] = '';
-					Logger::info("Completed Run successfully");
+					$log->info("Completed Run successfully");
 				}
 				$feedRun->setStatus('COMPLETED', $statusData);
 			}
