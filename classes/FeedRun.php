@@ -175,8 +175,8 @@ class FeedRun extends \chetch\db\DBObject{
 	}
 	
 	
-	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
-		parent::__construct($rowdata, $readFromDB);
+	public function read($requireExistence = false){
+		parent::read($requireExistence);
 
 		$this->assignR2V($this->status, 'status');
 		$this->assignR2V($this->downloadAttempts, 'download_attempts');

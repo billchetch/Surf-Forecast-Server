@@ -38,8 +38,8 @@ class FeedResult extends chetch\db\DBObject{
 	 * Instance methods
 	 */
 	
-	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
-		parent::__construct($rowdata, $readFromDB);
+	public function reqd($requireExistence = false){
+		parent::read($requireExistence);
 		
 		if(!empty($this->get('source'))){
 			if(empty($this->get('parser'))){

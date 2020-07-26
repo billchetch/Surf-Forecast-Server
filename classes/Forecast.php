@@ -348,8 +348,8 @@ class Forecast extends \chetch\db\DBObject{
 	public $hours = array(); //forecast data in the hours table
 	public $days = array(); //forecast data in the days table
 
-	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
-		parent::__construct($rowdata, $readFromDB);
+	public function read($requireExistence = false){
+		parent::read($requireExistence);
 		
 		$this->assignR2V($this->feedRunID, 'feed_run_id');
 		$this->assignR2V($this->locationID, 'location_id');
@@ -357,21 +357,6 @@ class Forecast extends \chetch\db\DBObject{
 		$this->assignR2V($this->forecastFrom, 'forecast_from');
 		$this->assignR2V($this->forecastTo, 'forecast_to');
 		$this->assignR2V($this->timezoneOffset, 'timezone_offset');
-		
-		/*if(isset($forecastData['hours'])){
-			foreach($forecastData['hours'] as $key=>$fd){
-				$fhours = ForecastHour::createInstance($fd, false);
-				if(isset($this->hours[$key]))$fhours->setID($this->hours[$key]->getID());
-				$this->hours[$key] = $fhours;
-			}
-		}
-		if(isset($forecastData['days'])){
-			foreach($forecastData['days'] as $key=>$fd){
-				$fdays = ForecastDay::createInstance($fd, false);
-				if(isset($this->days[$key]))$fdays->setID($this->days[$key]->getID());
-				$this->days[$key] = $fdays; 
-			}
-		}*/
 	}
 	
 	public function write($readAgain = false){

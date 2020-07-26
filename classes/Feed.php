@@ -31,21 +31,19 @@ class Feed extends chetch\db\DBObject{
 		//single row
 		//static::$config['SELECT_ROW_BY_ID_SQL'] = $sql." WHERE f.source_id=:source_id AND f.id=:id";
 		static::setConfig('SELECT_ROW_BY_ID_SQL', $sql." WHERE f.id=:id");
-		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.source_id=:source_id AND f.location_id=:location_id");
+		static::setConfig('SELECT_ROW_FILTER', "f.source_id=:source_id AND f.location_id=:location_id");
 	}
-	
-	
 	
 	/*
 	 * Instance methods
 	 */
-	public function __construct($rowdata, $readFromDB = self::READ_MISSING_VALUES_ONLY){
-		parent::__construct($rowdata, $readFromDB);
+	public function read($requireExistence = false){
+		parent::read($requireExistence);
 		
 		$this->assignR2V($this->source, 'source');
 		$this->assignR2V($this->location, 'location');
 			
-		if($this->getID() && $readFromDB){
+		if($this->getID()){
 			if(empty($this->get('url')))throw new Exception("No URL supplied for feed");
 		}
 		if($this->get('url')){
@@ -58,10 +56,8 @@ class Feed extends chetch\db\DBObject{
 				$p = Config::replaceKeysWithValues($p, $this->getRowData());
 				$this->payload = $p;
 			}
-		} 
-		
+		} 	
 	}
-	
 	
 	public function download(){
 		//retrieve data
