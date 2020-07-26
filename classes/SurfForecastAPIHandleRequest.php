@@ -51,19 +51,9 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						$data = self::about();
 						$data['source'] = $this->source;
 						$data['api_remote_url'] = \chetch\Config::get('API_REMOTE_URL');
-						$data['use_network_location'] = \chetch\Config::get('USE_NETWORK_LOCATION');
-						/*GPS::init(self::$dbh);
-						$coords = GPS::getLatest();
-						if($coords){
-							$data['latitude'] = $coords->latitude;
-							$data['longitude'] = $coords->longitude;
-						} else {
-							$data['latitude'] = null;
-							$data['longitude'] = null;
-						}*/
 						break;
 						
-					case 'location-info':
+					case 'position-info':
 						if(!isset($params['date']))throw new Exception("No date passed in query");
 						if(!isset($params['lat']))throw new Exception("Latitude not passed in query");
 						if(!isset($params['lon']))throw new Exception("Longitude not passed in query");
@@ -87,7 +77,18 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						break;
 						
 					case 'locations';
-						$data = Location::createCollectionAsRows();
+						$lastFeedRun = FeedRun::getLastRun();
+						if(empty($lastFeedRun->getID()))throw new Exception("No feed run found");
+						$locations = Location::createCollection();
+						foreach($locations as $l){
+							$row = $l->getRowData();
+							if(count(Forecast::getForecasts($lastFeedRun->getID(), $l)) > 0){
+								$row['last_feed_run_id'] = $lastFeedRun->getID();
+							} else {
+								$row['last_feed_run_id'] = 0;
+							}
+							array_push($data, $row);
+						}
 						break;
 						
 					case 'sources':
@@ -190,7 +191,7 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						break;
 						
 					default:
-						throw new Exception("Unknown GET request $req");
+						throw new Exception("Unknown GET request $request");
 						break;
 				}
 				break;

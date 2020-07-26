@@ -12,8 +12,17 @@ class Forecast extends \chetch\db\DBObject{
 		static::setConfig('SELECT_SQL', $sql);
 		static::setConfig('SELECT_DEFAULT_FILTER', "f.feed_run_id=:feed_run_id AND f.location_id=:location_id");
 		static::setConfig('SELECT_ROW_BY_ID_SQL', $sql." WHERE f.id=:id");
-		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id");
-		
+		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id");	
+	}
+
+	static public function getForecasts($feedRunID, $location){
+		$locationID = $location->getID();
+		$forecastLocationID = !empty($location->get('forecast_location_id')) ? $location->get('forecast_location_id') : $locationID;
+
+		$params = array();
+		$params['feed_run_id'] = $feedRunID;
+		$params['location_id'] = $forecastLocationID;
+		return static::createCollection($params);
 	}
 	
 	public static function getSynthesis($feedRun, $location, $weighting = null){
@@ -21,12 +30,8 @@ class Forecast extends \chetch\db\DBObject{
 		if(empty($feedRunID))throw new Exception("Please supply a feed run ID");
 		if(empty($location))throw new Exception("Please supply a location");
 		$locationID = $location->getID();
-		$forecastLocationID = !empty($location->get('forecast_location_id')) ? $location->get('forecast_location_id') : $locationID;
-		
-		$params = array();
-		$params['feed_run_id'] = $feedRunID;
-		$params['location_id'] = $forecastLocationID;
-		$forecasts = static::createCollection($params);
+
+		$forecasts = static::getForecasts($feedRunID, $location);
 		
 		//if there are no forecasts then throw
 		if(count($forecasts) == 0){
