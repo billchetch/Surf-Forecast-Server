@@ -26,6 +26,8 @@ class FeedResult extends chetch\db\DBObject{
 		$sql.= "FROM $rtbl r INNER JOIN $ftbl f ON r.feed_id=f.id INNER JOIN $stbl s ON f.source_id=s.id INNER JOIN $ltbl l ON f.location_id=l.id ";
 		static::setConfig('SELECT_SQL', $sql);
 		static::setConfig('SELECT_DEFAULT_FILTER', 'r.parsed=0');
+
+		static::setConfig('SELECT_ROW_BY_ID_SQL', $sql.' WHERE r.id=:id');
 	}
 	
 	public static function getAlreadyParsed($days){
