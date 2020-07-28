@@ -305,13 +305,14 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						
 					case 'locations':
 					case 'location':
-						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
-						if(empty($request[1]))throw new Exception("No ID passed");
-						$r = Location::createInstanceFromID(self::$dbh, $request[1], null);
-						$r->setID($request[1]);
-						$r->setRowData($params);
-						$r->write();
-						$data = array('id'=>$r->id);*/
+						if($this->source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
+						if(empty($requestParts[1]))throw new Exception("No ID passed");
+						$id = $requestParts[1];
+						$r = Location::createInstanceFromID($id, false);
+						$r->setID($id);
+						$r->setRowData($payload);
+						$data = array();
+						$data['id'] = $r->write();
 						break;
 						
 					case 'feeds':

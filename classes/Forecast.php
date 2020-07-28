@@ -301,15 +301,86 @@ class Forecast extends \chetch\db\DBObject{
 			}
 		} //end set tide position
 
-		//now we add location specific 'adujstments'
-
-		//finally we give our own rating
-		
+		//add final top level data
 		$tz = $synthesis['timezone_offset'];
 		$synthesis['forecast_from'] = date('Y-m-d H:i:s '.$tz, $synthesis['forecast_from']);
 		$synthesis['forecast_to'] = date('Y-m-d H:i:s '.$tz, $synthesis['forecast_to']);
 		$synthesis['created'] = date('Y-m-d H:i:s '.self::tzoffset(), $synthesis['created']);
+
+		//now we add location specific 'adujstments'
+		$swellAdjustment = null;
+		if(!empty($location->get('swell_adjustment'))){
+			$swellAdjustment = json_decode($location->get('swell_adjustment'), true);
+			if(json_last_error()){
+				throw new Exception("JSON parsing issue occured when trying to parse swell_adjustment: ".json_last_error_msg());
+			}
+		}
+		$windAdjustment = null;
+		if(!empty($location->get('wind_adjustment'))){
+			$windAdjustment = json_decode($location->get('wind_adjustment'), true);
+			if(json_last_error()){
+				throw new Exception("JSON parsing issue occured when trying to parse wind_adjustment: ".json_last_error_msg());
+			}
+		}
+
+		if($swellAdjustment || $windAdjustment){
+			$synthesis['adusted'] = 1;
+			$swellKeys = array();
+			$swellKeys['height'] = array('swell_height', 'swell_height_primary', 'swell_height_secondary');
+			$swellKeys['period'] = array('swell_period', 'swell_period_primary', 'swell_period_secondary');
+
+			foreach($synthesis['hours'] as &$h){
+				if($swellAdjustment){
+					foreach($swellKeys as $key=>$fields){ 
+						if(isset($swellAdjustment[$key])){
+							foreach($fields as $field){
+								$h[$field]['weighted_values'] *= $swellAdjustment[$key];
+								$h[$field]['weighted_average'] *= $swellAdjustment[$key];
+							}
+						}
+					}
+				}
 		
+				if($windAdjustment){
+					if(isset($windAdjustment['speed'])){
+						$h['wind_speed']['weighted_values'] *= $windAdjustment['speed'];
+						$h['wind_speed']['weighted_average'] *= $windAdjustment['speed'];
+					}
+				}
+			} //end adjusting 'hours'
+		} else {
+			$synthesis['adjusted'] = 0;
+		}//end adjusstments
+
+		//finally we give our own rating
+		$ratingParams = self::getRatingParams($location);
+		if($ratingParams['swell']['optimal_direction'] && $ratingParams['wind']['optimal_direction']){
+			foreach($synthesis['hours'] as $dt=>$h){
+				//Evaluate Wind
+				$wd = $h['wind_direction']['weighted_average']; //direction
+				$ws = $h['wind_speed']['weighted_average'];	//speed in kph
+				if($wd === null || $ws === null)continue;
+
+				$vals = $ratingParams['wind'];
+				$wq = self::windQuality($wd, $ws, $vals['optimal_direction'], $vals['window'], $vals['speed_floor'], $vals['speed_max']);
+
+				//Evaluate Swell
+				$sd = $h['swell_direction']['weighted_average']; //degrees
+				$sp = $h['swell_period']['weighted_average']; //secs
+				$sh = $h['swell_height']['weighted_average']; //meters
+				if($sd === null || $sp === null || $sh === null)continue;
+
+				//$swellWindow = 1, $periodCeiling = 15, $heightCeiling = 2.5){
+				$vals = $ratingParams['swell'];
+				
+				$sq = self::swellQuality($sd, $sp, $sh, $vals['optimal_direction'], $vals['window'], $vals['period_ceiling'], $vals['height_ceiling']);
+
+				$rating = self::conditionsRating($sq, $wq);
+				$synthesis['hours'][$dt]['bb_rating'] = $rating;
+			}
+		}
+
+
 		return $synthesis;
 	}
 	
@@ -340,6 +411,87 @@ class Forecast extends \chetch\db\DBObject{
 		return $syn1;
 	}
 	
+
+	public static function normalDistribution($x, $sd = 1){
+		$a = (1.0 / ($sd*sqrt(2*M_PI))); 
+		$b = exp(-1*($x*$x) / (2*$sd*$sd));
+		return $a*$b;
+	}
+
+	public static function directionQuality($actualDirection, $bestDirection, $spread = 4){
+		$normalisedDirection = abs($bestDirection - $actualDirection);
+		if($normalisedDirection > 180)$normalisedDirection = 360 - $normalisedDirection;
+		$normalisedDirection = 3.5*$normalisedDirection / 180.0; //bring to within 0, 4
+
+		$normalisedDirection = pow($normalisedDirection, 1.5) / $spread;
+		$scaleToOne = sqrt(2*M_PI);
+		return $scaleToOne*self::normalDistribution($normalisedDirection); //, $sd);
+	}
+
+	protected static function ceilingQuality($val, $ceiling, $spread = 4){
+		if($val <= 0)return 0;
+		if($val >= $ceiling)return 1;
+
+		$normalisedVal = 4.0*($ceiling - $val)/$ceiling;
+		$normalisedVal = $normalisedVal*$normalisedVal / $spread;
+
+		$scaleToOne = sqrt(2*M_PI);
+		return $scaleToOne*self::normalDistribution($normalisedVal); 
+	}
+
+	protected static function floorQuality($val, $floor, $max, $spread = 4){
+		if($val <= $floor)return 1;
+		if($val >= $max)return 0;
+
+		$normalisedVal = ($val - $floor)*4.0/$max;
+		$normalisedVal = $normalisedVal*$normalisedVal / $spread;
+		$scaleToOne = sqrt(2*M_PI);
+		return $scaleToOne*self::normalDistribution($normalisedVal); 
+	}
+
+
+	public static function windQuality($windDirection, $windSpeed, $bestDirection, $windWindow = 4, $windSpeedFloor = 8, $windSpeedMax = 50){
+		$directionQuality = self::directionQuality($windDirection, $bestDirection, $windWindow);
+		$windQuality = self::floorQuality($windSpeed, $windSpeedFloor, $windSpeedMax, 1.25*$directionQuality);
+		return $windQuality;
+	}
+
+	public static function swellQuality($swellDirection, $swellPeriod, $swellHeight, $bestDirection, $swellWindow = 1, $periodCeiling = 15, $heightCeiling = 2.5){
+		$directionQuality = self::directionQuality($swellDirection, $bestDirection, $swellWindow);
+		$xp = 2;
+		$ceiling = pow($periodCeiling, $xp)*$heightCeiling;
+		$whq = self::ceilingQuality(pow($swellPeriod, $xp)*$swellHeight*$directionQuality, $ceiling, 3.5*$swellPeriod/$periodCeiling);
+		return $whq;
+	}
+
+	public static function conditionsRating($swellQuality, $windQuality, $scale = 5){
+		 return round($scale*$swellQuality*$windQuality);
+	}
+
+	public static function getRatingParams($location){
+		if(empty($location->get('rating_params')))return null;
+
+		$ratingParams = json_decode($location->get('rating_params'), true);
+		if(json_last_error()){
+			throw new Exception("JSON parsing issue occured when trying to parse rating_params: ".json_last_error_msg());
+		}
+		
+		//TODO: make these 'regional' ...atm only for Indo
+		$defaults = array();
+		$defaults['swell'] = array('optimal_direction'=>null, 'period_ceiling'=>15, 'height_ceiling'=>2.25, 'window'=>1);
+		$defaults['wind'] = array('optimal_direction'=>null, 'speed_floor'=>5, 'speed_max'=>50, 'window'=>4);
+		
+		$params2return = array('wind'=>array(), 'swell'=>array());
+		foreach($params2return as $key=>$ar){
+			foreach($defaults[$key] as $k=>$defaultValue){
+				$params2return[$key][$k] = isset($ratingParams[$key]) && isset($ratingParams[$key][$k]) ? $ratingParams[$key][$k] : $defaultValue;
+			}
+		}
+
+		return $params2return;
+	}
+
+
 	//Instance fiellds and methods
 	public $feedRunID;
 	public $sourceID;

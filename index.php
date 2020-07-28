@@ -1,6 +1,8 @@
 <?php
 require_once('_include.php');
 
+use chetch\sys\Logger as Logger;
+	
 try{
 	if(empty($_GET['req']))throw new Exception("No request made");
 	$req = $_GET['req'];
@@ -50,10 +52,8 @@ try{
 	}
 
 } catch (Exception $e){
-	if($dbh){
-		Logger::init($dbh, array('log_name'=>'http request', 'log_options'=>Logger::LOG_TO_DATABASE));
-		Logger::exception($e->getMessage());
-	}
+	$log = Logger::getLog();
+	$log->exception($e->getMessage());
 	
 	header('HTTP/1.0 404 Not Found', true, 404);
 	echo "Exception: ".$e->getMessage();

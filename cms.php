@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Surf Forecast Manager</title>
-<script language="javascript" src="/lib/js/jquery/jquery-1.4.4.min.js"></script>
+<script language="javascript" src="/common/js/jquery/jquery-1.4.4.min.js"></script>
 <script language="javascript">
 
 function SFManager(){
@@ -179,7 +179,7 @@ SFManager.prototype.makeHeaderRow = function(row, fields, exclude){
 			if(!exclude && fields.indexOf(p) == -1)continue;
 		}
 		
-		var $td = $('<td/>');
+		var $td = $('<th/>');
 		var s = p.replace('_', ' ');
 		$td.html(s);
 		$tr.append($td);
@@ -199,10 +199,19 @@ SFManager.prototype.alignRowWidths = function(){
 SFManager.prototype.updateDisplay = function(request, result){
 	var T = this;
 	console.log("Update display: " + request);
+
+	$("#new-row").css("visibility","visible");
+	$("#rows").css("visibility","visible");
+	$("#notification").css("visibility","hidden");
+
 	switch(request){
 	case 'sources':
 		var $table = $('#rows-table');
 		$table.empty();
+		if(result.length > 0){
+			$table.append(this.makeHeaderRow(result[0]));
+		}
+
 		var ipts = 'source,api_key,base_url,default_endpoint,default_querystring,active';
 		$.each(result, function(idx, row){
 			var $tr = T.makeResultTableRow(row, ipts);
@@ -215,21 +224,19 @@ SFManager.prototype.updateDisplay = function(request, result){
 		$.each(ipts, function(idx, ipt){
 			$table.append(T.makeNewRowRow(ipt));
 		});
-
-		$table = $('#rows-header-table');
-		$table.empty();
-		if(result.length > 0){
-			$table.append(this.makeHeaderRow(result[0]));
-			this.alignRowWidths();
-		}
 		break;
 
 	case 'locations':
 		var $table = $('#rows-table');
 		$table.empty();
-		var ipts = 'location,latitude,longitude,timezone,timezone_offset,forecast_location_id,active,description';
+		if(result.length > 0){
+			$table.append(this.makeHeaderRow(result[0]));
+		}
+
+		var ipts = 'location,latitude,longitude,timezone,timezone_offset,forecast_location_id,active,description,swell_adjustment,wind_adjustment,rating_params';
+		var eMap = {"description": 'textarea', "swell_adjustment": 'textarea', "wind_adjustment": 'textarea', "rating_params": 'textarea'};
 		$.each(result, function(idx, row){
-			var $tr = T.makeResultTableRow(row, ipts, 'distance', true, {"description": 'textarea'});
+			var $tr = T.makeResultTableRow(row, ipts, 'distance', true, eMap);
 			$table.append($tr);
 		});
 		
@@ -237,24 +244,22 @@ SFManager.prototype.updateDisplay = function(request, result){
 		$table.empty();
 		ipts = ipts.split(',');
 		$.each(ipts, function(idx, ipt){
-			$table.append(T.makeNewRowRow(ipt, null, {"description": 'textarea'}));
+			$table.append(T.makeNewRowRow(ipt, null, eMap));
 		});
 
-		$table = $('#rows-header-table');
-		$table.empty();
-		if(result.length > 0){
-			$table.append(this.makeHeaderRow(result[0]));
-			this.alignRowWidths();
-		}
 		break;
 
 	case 'feeds':
 		var $table = $('#rows-table');
 		$table.empty();
+
+		if(result.length > 0){
+			$table.append(this.makeHeaderRow(result[0], fields));
+		}
 		var ipts = 'endpoint,querystring,payload';
 		var fields = 'id,endpoint,querystring,payload,location';
 		$.each(result, function(idx, row){
-			var $tr = T.makeResultTableRow(row, ipts, fields, false);
+			var $tr = T.makeResultTableRow(row, ipts); //, fields, false);
 			$table.append($tr);
 		});
 
@@ -265,12 +270,6 @@ SFManager.prototype.updateDisplay = function(request, result){
 			$table.append(T.makeNewRowRow(ipt));
 		});
 
-		$table = $('#rows-header-table');
-		$table.empty();
-		if(result.length > 0){
-			$table.append(this.makeHeaderRow(result[0], fields));
-			this.alignRowWidths();
-		}
 		break;
 	}
 }
@@ -286,6 +285,7 @@ SFManager.prototype.isDirty = function(elt, prop, vals2save){
 }
 
 SFManager.prototype.saveRows = function(request){
+	$("#notification").css("visibility","hidden");
 	var vals2save = {};
 	var dirty = 0;
 	var T = this;
@@ -334,6 +334,10 @@ SFManager.prototype.savedRows = function(request, result){
 		}
 		break;
 	}
+
+	$("#notification").css("visibility","visible");
+	$("#notification").html("Saved rows");
+
 }
 
 SFManager.prototype.deleteRows = function(request){
@@ -404,12 +408,37 @@ body{
 	font-family: helvetica, arial;
 	font-size: 12px;
 }
+
+#new-row{
+	visibility: hidden;
+}
+
+#rows{
+	overflow: scroll;
+	width: 100%;
+	visibility: hidden;
+}
 #rows table, #rows input{
 	font-family: helvetica, arial;
 	font-size: 12px;
 }
-#rows-header td{
+
+#rows table, #rows th, #rows td{
+	border: 1px solid #666666;
+	border-collapse: collapse;
+	padding: 2px;
+}
+
+#notification{
+	background-color: orange;
+	padding: 4px;
 	font-weight: bold;
+	visibilty: hidden;
+}
+
+textarea{
+	font-family: helvetica;
+	font-size: 12px;
 }
 .whiteout{
 	color: white;
@@ -448,14 +477,16 @@ body{
 	<input type="button" id="delete-rows" value="Delete Rows"/>
 </div>
 
+<div id="notification">
+	
+</div>
+
 <div id="new-row">
+	<h3><b>To add a new row fill in the fields below and click 'Save Rows' above (nb. this will save any dirty rows at the same time)</b></h3>
 	<table id="new-row-table">
 	</table>
 </div>
-<div id="rows-header">
-	<table id="rows-header-table">
-	</table>
-</div>
+<br/>
 <div id="rows">
 	<table id="rows-table">
 	</table>
