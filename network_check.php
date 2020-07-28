@@ -1,11 +1,18 @@
 <?php
 require('_include.php');
 
+use chetch\Config as Config;
+use chetch\Utils as Utils;
+use chetch\sys\Logger as Logger;
+use chetch\sys\SysInfo as SysInfo;
+use chetch\network\Network as Network;
+use chetch\api\APIMakeRequest as APIMakeRequest;
+
 function pingTest($ipType, $ip, &$digest){
 	$info = "$ipType: ".($ip ? $ip : " no IP to test");
 	$rval = false;
 	if($ip){
-		$stats = Utils::ping($ip);
+		$stats = Network::ping($ip);
 		if($stats['loss'] == 0){
 			$rval = true;
 			$info.= " ... responding";
@@ -21,21 +28,22 @@ function pingTest($ipType, $ip, &$digest){
 try{
 	set_time_limit(60*10); //we allow 10 mins for the script as it has some network latency
 	
-	Logger::init($dbh, array('log_name'=>'network check', 'log_options'=>Logger::LOG_TO_DATABASE + Logger::LOG_TO_SCREEN));
-	Logger::start();
+	$log = Logger::getLog('network check', Logger::LOG_TO_DATABASE + Logger::LOG_TO_SCREEN);
+	$log->start();
 	
-	SysInfo::init($dbh);
-	$digest = Digest::create($dbh, "NETWORK CHECK");
+	$si = SysInfo::createInstance();
+
+	$digest = Digest::create("NETWORK CHECK");
 	
 	//we ping test if LAN router, INTERNET router and REMOTE HOST
 	$lanRouterAvailable = pingTest("LAN ROUTER IP", Config::get('LAN_ROUTER_IP'), $digest);
 	$internetRouterAvailable = pingTest("INTERNET ROUTER IP", Config::get('INTERNET_ROUTER_IP'), $digest);
 	$internetAvailable = pingTest("REMOTE HOST", Config::get('PING_REMOTE_HOST'), $digest);
-	Logger::info("Ping tests: ".$digest->getDigestInfo("PING TESTS"));
+	$log->info("Ping tests: ".$digest->getDigestInfo("PING TESTS"));
 	
 	//if the internet router is contactable but there is no internet then we see if we should try a restart
 	if($internetAvailable){
-		SysInfo::set('internet-last-available', date('Y-m-d H:i:s'));
+		$si->setData('internet-last-available', SysInfo::now(false));
 	} 
 	
 	if($internetRouterAvailable){
@@ -48,13 +56,13 @@ try{
 				$digest->addDigestInfo("INTERNET ROUTER", Digest::formatAssocArray($routerInfo));
 				
 				//now we try restart if more than a certain time has elapsed
-				$dtRA = SysInfo::get('internet-router-last-restarted');
+				$dtRA = $si->getData('internet-router-last-restarted');
 				$routerRestartTime = Config::get('INTERNET_ROUTER_RESTART_TIME', 60*60*24);
 				$doReboot = (!$dtRA || (time() - strtotime($dtRA) > $routerRestartTime));
 				
 				if($doReboot){
 					$digest->addDigestInfo("INTERNET ROUTER", "Router available and attempting reboot");
-					SysInfo::set('internet-router-last-restarted', date('Y-m-d H:i:s'));
+					$si->setData('internet-router-last-restarted', SysInfo::now(false));
 					$router->reboot();
 					die;
 				} else {
@@ -63,52 +71,50 @@ try{
 				}
 			} catch (Exception $e){
 				$digest->addDigestInfo("INTERNET ROUTER", 'Exception: '.$e->getMessage());
-				Logger::exception($e->getMessage());
+				$log->exception($e->getMessage());
 			}
 		} else {
-			Logger::warning("No router class available for status or restart");
+			$log->warning("No router class available for status or restart");
 			$digest->addDigestInfo("INTERNET ROUTER", 'No router class available for status or restart');
 		}
 	} else {
 		$digest->addDigestInfo("INTERNET ROUTER", "Router not available!");
-		Logger::warning("Internet router is not available");	
+		$log->warning("Internet router is not available");	
 	}
 	
 	//If the time is suffucient between updates then we can try and update over network again
 	$doNetworkUpdate = false;
-	$dt = SysInfo::get('last_updated_from_network');
+	$dt = $si->getData('last_updated_from_network');
 	if(!$dt || (time() - strtotime($dt) > Config::get('UPDATE_FROM_NETWORK_TIME', 60*60*4))){
 		$doNetworkUpdate = true;
 	} else {
-		Logger::info("No need to update from network as last update was too recent");
+		$log->info("No need to update from network as last update was too recent");
 	}
 	
 	//First we get latest GPS location of network and store for reporting purposes
-	GPS::init($dbh);
-	$serverLocation = GPS::getLatest();
-	$coords = GPS::getRecent(3600); //get GPS for last hour
-	foreach($coords as $gps){
-		$digest->addDigestInfo("GPS", $gps->getSummary(), 1);
-	}
-	
+	$baseURL = Config::get('GPS_API_LOCAL_URL', 'http://localhost:8003/api');
+	$apiRequest = APIMakeRequest::createGetRequest($baseURL, "latest-position");
+	$serverLocation = $apiRequest->request();
+
 	if($doNetworkUpdate && $internetAvailable){	
-		Logger::info("Updating API cache using data from ".Config::get("API_REMOTE_URL"));
+		if(!Config::get("API_REMOTE_URL"))throw new Exception("No API remote URL provided");
+	
+		$log->info("Updating API cache using data from ".Config::get("API_REMOTE_URL"));
 		$t = microtime(true);
 		
-		//update API cache
-		APIRequest::init($dbh, APIRequest::SOURCE_REMOTE);
-		$requests2make = array(); //we are going to make a bulk request to the server to save on connections
+		//we are going to make a bulk request to the server to save on connections
+		$requests2make = array(); 
 		$params = array(); //
 		
 		$latLon = null;
-		if($serverLocation && isset($serverLocation->latitude) && isset($serverLocation->longitude)){
+		if($serverLocation && isset($serverLocation['latitude']) && isset($serverLocation['longitude'])){
 			$params = array();
-			$params['lat'] = $serverLocation->latitude;
-			$params['lon'] = $serverLocation->longitude;
+			$params['lat'] = $serverLocation['latitude'];
+			$params['lon'] = $serverLocation['longitude'];
 			$latLon = $params['lat'].','.$params['lon'];
-			Logger::info("Using location data $latLon");
+			$log->info("Using location data $latLon");
 		} else {
-			Logger::info("No location data found!");
+			throw new Exception("No location data found!");
 		}
 		
 		// sources and locations in one go
@@ -116,14 +122,17 @@ try{
 		$params['max_locations'] = $maxLocations;
 		array_push($requests2make, 'sources');
 		array_push($requests2make, 'locations');
-		Logger::info("Getting sources and locations");
+		$log->info("Getting sources and locations");
+
 		$params['requests'] = implode(',', $requests2make);
-		$data = APIRequest::processGetRequest('batch', $params);
-		APIRequest::save2cache($data);
-		$dz = APIRequest::getRequestInfo('size_download');
+		$baseURL = Config::get('API_REMOTE_URL');
+		$apiRequest = APIMakeRequest::createGetRequest($baseURL, 'batch', $params);
+		$result = $apiRequest->request();
+		$apiRequest->writeBatch($result);
+		$dz = $apiRequest->info['size_download'];
 		$totalDownloadSize = $dz; 
-		Logger::info("Download size: $dz");
-		Logger::info("Saved sources and locations to cache");
+		$log->info("Download size: $dz bytes");
+		$log->info("Saved ".count($result['sources'])." sources and ".count($result['locations'])." locations to cache");
 		$digest->addDigestInfo("API CACHE UPDATE", "Updated sources and locations ".($latLon ? " using lat/lon $latLon" : ''), 1);
 		
 		//now get forecasts for those locations
@@ -131,68 +140,71 @@ try{
 		$params = array();
 		$ep = Config::get('FORECAST_API_ENDPOINT', 'forecast-daylight');
 		if($latLon){
-			Logger::info("Getting forecasts (endpoint: $ep) using $maxLocations locations near $latLon");
+			$log->info("Getting forecasts (endpoint: $ep) using $maxLocations locations near $latLon");
 		} else {
-			Logger::info("Getting forecasts (endpoint: $ep) using $maxLocations locations");
+			$log->info("Getting forecasts (endpoint: $ep) using $maxLocations locations");
 		}
-		foreach($data['locations'] as $l){
+		foreach($result['locations'] as $l){
 			$req = $ep.'/'.$l['id']; //get only daylight relevant hours
 			array_push($requests2make, $req);
 		}
 		$params['requests'] = implode(',', $requests2make);
-		$data = APIRequest::processGetRequest('batch', $params);
-		APIRequest::save2cache($data);
-		$dz = APIRequest::getRequestInfo('size_download');
+		$apiRequest = APIMakeRequest::createGetRequest($baseURL, 'batch', $params);
+		$result = $apiRequest->request();
+		$apiRequest->writeBatch($result);
+		$dz = $apiRequest->info['size_download'];
 		$totalDownloadSize += $dz;  
-		Logger::info("Download size: $dz");
-		Logger::info("Saved ".count($requests2make)." forecasts to cache");
+		$log->info("Download size: $dz bytes");
+		$log->info("Saved ".count($requests2make)." forecasts to cache");
 		$digest->addDigestInfo("API CACHE UPDATE", "Updated ".count($requests2make)." forecasts", 1);
 		
 		//add some general data to log and digest
 		$downloadTime = round(microtime(true) - $t, 2);
 		$msg = "Completed update of cache from network $totalDownloadSize bytes in $downloadTime secs";
-		Logger::info($msg);
+		$log->info($msg);
 		$digest->addDigestInfo("API CACHE UPDATE", $msg, 1);
 		
 		//If here we consider this to be a successful update from the network
-		SysInfo::set('last_updated_from_network', date('Y-m-d H:i:s'));
+		$si->setData('last_updated_from_network', SysInfo::now(false));
 	}
 	
 	//we have a digest for this script so we see if it's sufficient time since the last digest 
 	//and if so we save it
-	$dt = SysInfo::get('last_network_check_digest');
+	$dt = $si->getData('last_network_check_digest');
 	if(!$dt || (time() - strtotime($dt) > Config::get('DIGEST_FROM_NETWORK_TIME', 60*60*1))){
-		SysInfo::set('last_network_check_digest', date('Y-m-d H:i:s'));
+		$si->setData('last_network_check_digest', SysInfo::now(false));
 		$digest->write();
-		Logger::info("Saving digest");	
+		$log->info("Saving digest");	
 	} else {
-		Logger::info("Abandoning digest as too recent since last digest");
+		$log->info("Abandoning digest as too recent since last digest");
 	}
 	
 	if($doNetworkUpdate && $internetAvailable){
 		//send all outstanding system digests
-		APIRequest::init($dbh, APIRequest::SOURCE_REMOTE);
-		$apiRequest = APIRequest::createRequest('digests');
 		$digests = Digest::getOutstanding();
 		$received = Digest::getReceived(); //if received then from within local network so we post to server to be sent on 
 		foreach($received as $d)array_push($digests, $d);
 		
-		Logger::info(count($digests)." outstanding digests....");
-		foreach($digests as $dg){
+		$baseURL = Config::get("API_REMOTE_URL");
+		$d2p = min(10, count($digests));
+		$log->info("Atempting to post $d2p outstanding digests....");
+		for($i = 0; $i < $d2p; $i++){
+			$dg = $digests[$i];
 			try{
 				$pd = $dg->getPostData();
-				$apiRequest->post($pd);
-				$dg->setStatus(Digest::STATUS_POSTED);
-				$dg->write();
+				$apiRequest = APIMakeRequest::createPostRequest($baseURL, 'digest', $pd);
+				//$apiRequest->request();
+				//$dg->setStatus(Digest::STATUS_POSTED);
+				//$dg->write();
 			} catch (Exception $e){
-				Logger::exception($e->getMessage());
+				$log->exception($e->getMessage());
 			}
 		}
 	}
 	
-	Logger::info("Completed network check");
+	$log->info("Completed network check");
 } catch (Exception $e){
-	Logger::exception($e->getMessage());
-	Logger::info("Network check exited because of exception");
+	$log->exception($e->getMessage());
+	$log->info("Network check exited because of exception");
 }
 ?>

@@ -274,24 +274,6 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 					case 'batch':
 						break;
 					
-					case 'device':
-						/*$params['device_id'] = $request[1];
-						if(empty($params['is_location_set'])){
-							$params['latitude'] = null;
-							$params['longitude'] = null;
-							$params['location_accuracy'] = null;
-						}
-						if(!empty($params['device_network'])){ //sometimes these are sent with quotation marks around
-							$params['device_network'] = str_ireplace('"','', $params['device_network']);
-						}
-						unset($params['is_location_set']);
-						unset($params['last_updated']);
-						$clientDevice = ClientDevice::createInstance(self::$dbh, $params);
-						$clientDevice->write();
-						$data = $clientDevice->getWithLocationData(Config::get('USE_NETWORK_LOCATION'));
-						Utils::convertToUTC($data, 'created,last_updated,location_last_updated');*/
-						break;
-
 					case 'sources':
 					case 'source':
 						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
@@ -349,16 +331,15 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 		$data2return = null;
 		switch($this->source){
 			case self::SOURCE_DATABASE:
-			case self::SOURCE_CACHE: 
 				switch($requestParts[0]){
 					case 'digests':
 					case 'digest':
-						/*unset($params['id']);
+						unset($params['id']);
 						unset($params['created']);
 						$params['source'] = isset($_SERVER) && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
 						$params['status'] = Digest::STATUS_RECEIVED;
-						$digest = Digest::addDigest(self::$dbh, $params);
-						$data2return = array('id'=>$digest->id);*/
+						$digest = Digest::addDigest($params);
+						$data2return = array('id'=>$digest->id);
 						break;
 						
 					case 'sources':

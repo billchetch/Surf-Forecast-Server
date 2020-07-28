@@ -60,19 +60,21 @@ function conditionsRating($swellQuality, $windQuality, $scale = 5){
 	 return round($scale*$swellQuality*$windQuality);
 }
 
+
+use chetch\api\APIMakeRequest as APIMakeRequest;
+
 try{
 	$lf = "\n";
 
+	$apiURL = "http://sf.bulan-baru.com:8002/api";
+	$request = "batch";
+	$params = array('requests'=>'x,y');
+	$apiRequest = APIMakeRequest::createGetRequest($apiURL, $request, $params);
+	$apiRequest->set('request', 'locations');
+	$apiRequest->read();
 
-	/*$result = FeedResult::createInstanceFromID(59597);
-
-	$data = $result->parse();
-	$data['feed_run_id'] = 985;
-	//unset($data['hours']);
-	//unset($data['days']);
-	$f = Forecast::createInstanceFromID($data);
-	$f->write();
-	die;*/
+	print_r($apiRequest->getRowData());
+	die;
 
 
 	/*for($i = -5; $i <= 5; $i += 0.5 ){
