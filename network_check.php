@@ -193,9 +193,10 @@ try{
 			try{
 				$pd = $dg->getPostData();
 				$apiRequest = APIMakeRequest::createPostRequest($baseURL, 'digest', $pd);
-				//$apiRequest->request();
-				//$dg->setStatus(Digest::STATUS_POSTED);
-				//$dg->write();
+				$apiRequest->request();
+				$dg->setStatus(Digest::STATUS_POSTED);
+				$dg->write();
+				$log->info("Posted digest ".($i + 1));
 			} catch (Exception $e){
 				$log->exception($e->getMessage());
 			}

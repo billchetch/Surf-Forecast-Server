@@ -1,33 +1,39 @@
 <?php
 require('_include.php');
 
-Logger::init($dbh, array('log_name'=>'notifications', 'log_options'=>Logger::LOG_TO_SCREEN));
+
+use chetch\Config as Config;
+use chetch\Utils as Utils;
+use chetch\sys\Logger as Logger;
+use chetch\sys\SysInfo as SysInfo;
+
+$log = Logger::getLog('notifications', Logger::LOG_TO_SCREEN);
 
 try{
-	Digest::init($dbh);
 	$digests = array();
 	$rdigests = Digest::getReceived();
 	$odigests = Digest::getOutstanding();
-	Logger::info(count($rdigests)." digests received, ".count($odigests)." digests outstanding");
+	$log->info(count($rdigests)." digests received, ".count($odigests)." digests outstanding");
 	foreach($rdigests as $d)array_push($digests, $d);
 	foreach($odigests as $d)array_push($digests, $d);
 	
 	$body = '';
 	$lf = "\n";
 	$digests2mail = array();
-	
-	
-	foreach($digests as $dg){
-		$title = $dg->rowdata['digest_title'];
+	$max = min(count($digests), Config::('MAX_NOTIFICATIONS_TO_SEND', 5));
+	$log->info("Attempting to send $max digests");
+	for($i = 0; $i < $max; $i++){
+		$dg = $digests[$i];
+		$title = $dg->get('digest_title');
 		$dt = "";
-		if($dg->rowdata['source_created']){
-			$dt = $dg->rowdata['source_created'].' '.$dg->rowdata['source_timezone_offset'];
+		if($dg->get('source_created')){
+			$dt = $dg->get('source_created').' '.$dg->get('source_timezone_offset');
 		} else {
-			$dt = $dg->rowdata['created'].' '.$dg->tzoffset();
+			$dt = $dg->get('created').' '.$dg->tzoffset();
 		} 
 		
-		$source = $dg->rowdata['source'] ? $dg->rowdata['source'] : 'local'; 
-		$dgs = "$dt ($source): ".$title.$lf.$lf.$dg->rowdata['digest'];
+		$source = $dg->get('source') ? $dg->get('source') : 'local'; 
+		$dgs = "$dt ($source): ".$title.$lf.$lf.$dg->get('digest');
 		if(!isset($digests2mail[$title])){
 			$digests2mail[$title] = array('body'=>$dgs, 'digests'=>array());
 		} else {
@@ -43,7 +49,7 @@ try{
 		$mail->Subject = "BBSF: ".$subject;
 		$mail->Body = $data['body']; 
 		if($mail->Send()){
-			Logger::info("Emailed subject $subject to $to");
+			$log->info("Emailed subject $subject to $to");
 			foreach($data['digests'] as $dg){
 				switch($dg->rowdata['status']){
 					case Digest::STATUS_RECEIVED:
@@ -57,11 +63,11 @@ try{
 				$dg->write();
 			} 
 		} else {
-			Logger::warning("Could not email subject $subject to $to");
+			$log->warning("Could not email subject $subject to $to");
 		}
 		//echo "Email: $to\nSubject: $subject\nBody:$body\n";
 	}
 
 } catch (Exception $e){
-	Logger::exception($e->getMessage());
+	$log->exception($e->getMessage());
 }
