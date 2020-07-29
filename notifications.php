@@ -52,7 +52,7 @@ try{
 		if($mail->Send()){
 			$log->info("Emailed subject $subject to $to");
 			foreach($data['digests'] as $dg){
-				switch($dg->rowdata['status']){
+				switch($dg->get('status')){
 					case Digest::STATUS_RECEIVED:
 						$newStatus = Digest::STATUS_RECEIVED_AND_EMAILED;
 						break;
