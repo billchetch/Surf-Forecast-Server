@@ -70,6 +70,8 @@ try{
 		//echo "Email: $to\nSubject: $subject\nBody:$body\n";
 	}
 
+	$log->finish();
+
 } catch (Exception $e){
 	$log->exception($e->getMessage());
 }

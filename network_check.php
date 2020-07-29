@@ -204,6 +204,8 @@ try{
 	}
 	
 	$log->info("Completed network check");
+	$log->finish();
+
 } catch (Exception $e){
 	$log->exception($e->getMessage());
 	$log->info("Network check exited because of exception");
