@@ -17,6 +17,11 @@ try{
 	foreach($rdigests as $d)array_push($digests, $d);
 	foreach($odigests as $d)array_push($digests, $d);
 	
+	if(count($digests) == 0){
+		$log->finish();
+		die;
+	}
+
 	$body = '';
 	$lf = "\n";
 	$digests2mail = array();
