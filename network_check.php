@@ -171,12 +171,13 @@ try{
 	//we have a digest for this script so we see if it's sufficient time since the last digest 
 	//and if so we save it
 	$dt = $si->getData('last_network_check_digest');
-	if(!$dt || (time() - strtotime($dt) > Config::get('DIGEST_FROM_NETWORK_TIME', 60*60*1))){
+	$threshold = Config::get('DIGEST_FROM_NETWORK_TIME', 60*60*1);
+	if(!$dt || (time() - strtotime($dt) > $threshold)){
 		$si->setData('last_network_check_digest', SysInfo::now(false));
 		$digest->write();
 		$log->info("Saving digest");	
 	} else {
-		$log->info("Abandoning digest as too recent since last digest");
+		$log->info("Abandoning digest as ".date('Y-m-d H:i:s')." is too recent since last digest on $dt (threshold is $threshold)");
 	}
 	
 	if($doNetworkUpdate && $internetAvailable){
