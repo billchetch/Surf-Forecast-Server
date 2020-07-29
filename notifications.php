@@ -21,7 +21,6 @@ try{
 	$lf = "\n";
 	$digests2mail = array();
 	$max = min(count($digests), Config::get('MAX_NOTIFICATIONS_TO_SEND', 5));
-	$log->info("Attempting to send $max digests");
 	for($i = 0; $i < $max; $i++){
 		$dg = $digests[$i];
 		$title = $dg->get('digest_title');
@@ -45,6 +44,7 @@ try{
 	$to = Config::get('EMAIL_DIGESTS_TO', 'bill@bulan-baru.com');
 	$mail = getMailer($to, "", "", "sf@bulan-baru.com", "sf@bulan-baru.com");
 		
+	$log->info("Attempting to send ".count($digests2mail)." digests");
 	foreach($digests2mail as $subject=>$data){
 		$mail->Subject = "BBSF: ".$subject;
 		$mail->Body = $data['body']; 
