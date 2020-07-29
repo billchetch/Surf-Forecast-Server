@@ -276,13 +276,13 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 					
 					case 'sources':
 					case 'source':
-						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
-						if(empty($request[1]))throw new Exception("No ID passed");
-						$r = Sources::createInstanceFromID(self::$dbh, $request[1], null);
-						$r->setID($request[1]);
-						$r->setRowData($params);
-						$r->write();
-						$data = array('id'=>$r->id);*/
+						if($this->source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
+						if(empty($requestParts[1]))throw new Exception("No ID passed");
+						$id = $requestParts[1];
+						$r = Sources::createInstanceFromID($id, false);
+						$r->setRowData($payload);
+						$data = array();
+						$data['id'] = $r->write();
 						break;
 						
 					case 'locations':
@@ -291,7 +291,6 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						if(empty($requestParts[1]))throw new Exception("No ID passed");
 						$id = $requestParts[1];
 						$r = Location::createInstanceFromID($id, false);
-						$r->setID($id);
 						$r->setRowData($payload);
 						$data = array();
 						$data['id'] = $r->write();
@@ -299,13 +298,13 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						
 					case 'feeds':
 					case 'feed':
-						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
-						if(empty($request[1]))throw new Exception("No ID passed");
-						$r = Feed::createInstanceFromID(self::$dbh, $request[1], null);
-						$r->setID($request[1]);
-						$r->setRowData($params);
-						$r->write();
-						$data = array('id'=>$r->id);*/
+						if($this->source == self::SOURCE_CACHE)throw new Exception("Cannot PUT $req to cache");
+						if(empty($requestParts[1]))throw new Exception("No ID passed");
+						$id = $requestParts[1];
+						$r = Feed::createInstanceFromID($id, false);
+						$r->setRowData($payload);
+						$data = array();
+						$data['id'] = $r->write();
 						break;
 						
 					default:
@@ -334,43 +333,40 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 				switch($requestParts[0]){
 					case 'digests':
 					case 'digest':
-						unset($params['id']);
-						unset($params['created']);
-						$params['source'] = isset($_SERVER) && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
-						$params['status'] = Digest::STATUS_RECEIVED;
-						$digest = Digest::addDigest($params);
+						unset($payload['id']);
+						unset($payload['created']);
+						$payload['source'] = isset($_SERVER) && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
+						$payload['status'] = Digest::STATUS_RECEIVED;
+						$digest = Digest::addDigest($payload);
 						$data2return = array('id'=>$digest->id);
 						break;
 						
 					case 'sources':
 					case 'source':
-						/*$r = Sources::createInstance(self::$dbh, null, null);
-						$r->setRowData($params, true);
+						$r = Sources::createInstance($payload, false);
 						$id = $r->write();
-						$data2return = array('id'=>$id);*/
+						$data2return = array('id'=>$id);
 						break;
 						
 					case 'locations':
 					case 'location':
-						/*$r = Location::createInstance(self::$dbh, null, null);
-						$r->setRowData($params, true);
+						$r = Location::createInstance($payload, false);
 						$id = $r->write();
 						
 						//we write default feeds for this location based on sources
-						$sources = Sources::createCollection(self::$dbh);
+						$sources = Sources::createCollection();
 						foreach($sources as $s){
-							$f = Feed::createInstance(self::$dbh, null, null);
 							$vals = array();
-							$vals['source_id'] = $s->rowdata['id'];
+							$vals['source_id'] = $s->getID();
 							$vals['location_id'] = $id;
-							$vals['querystring'] = $s->rowdata['default_querystring'];
-							$vals['payload'] = $s->rowdata['default_payload'];
-							$vals['endpoint'] = $s->rowdata['default_endpoint'];
-							$f->setRowData($vals);
+							$vals['querystring'] = $s->get('default_querystring');
+							$vals['payload'] = $s->get('default_payload');
+							$vals['endpoint'] = $s->get('default_endpoint');
+							$f = Feed::createInstance($vals, false);
 							$f->write();
 						}
 						
-						$data2return = array('id'=>$id);*/
+						$data2return = array('id'=>$id);
 						break;
 						
 					default:
@@ -399,27 +395,26 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 				switch($requestParts[0]){
 					case 'sources':
 					case 'source':
-						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot DELETE $req from cache");
-						if(empty($request[1]))throw new Exception("No ID passed");
-						$r = Sources::createInstanceFromID(self::$dbh, $request[1], null);
-						$r->setID($request[1]);
-						$data = array('id'=>$r->delete());*/
+						if($this->source == self::SOURCE_CACHE)throw new Exception("Cannot DELETE from cache");
+						if(empty($requestParts[1]))throw new Exception("No ID passed");
+						$id = Sources::deleteByID($requestParts[1]);
+						$data = array('id'=>$id);
 						break;
 						
 					case 'locations':
 					case 'location':
-						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot DELETE $req from cache");
-						$r = Location::createInstanceFromID(self::$dbh, $request[1], null);
-						$r->setID($request[1]);
-						$data = array('id'=>$r->delete());*/
+						if($this->source == self::SOURCE_CACHE)throw new Exception("Cannot DELETE from cache");
+						if(empty($requestParts[1]))throw new Exception("No ID passed");
+						$id = Location::deleteByID($requestParts[1]);
+						$data = array('id'=>$id);
 						break;
 						
 					case 'feeds':
 					case 'feed':
-						/*if(static::$source == self::SOURCE_CACHE)throw new Exception("Cannot DELETE $req from cache");
-						$r = Feed::createInstanceFromID(self::$dbh, $request[1], null);
-						$r->setID($request[1]);
-						$data = array('id'=>$r->delete());*/
+						if($this->source == self::SOURCE_CACHE)throw new Exception("Cannot DELETE from cache");
+						if(empty($requestParts[1]))throw new Exception("No ID passed");
+						$id = Feed::deleteByID($requestParts[1]);
+						$data = array('id'=>$id);
 						break;
 						
 					default:

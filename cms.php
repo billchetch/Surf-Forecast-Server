@@ -47,14 +47,14 @@ SFManager.prototype.apiURL = function(request, params){
 	return url;
 }
 
-SFManager.prototype.request = function(type, request, params, data, callback){
+SFManager.prototype.request = function(type, request, params, data, callback, errorCallback){
 	var T = this;
 	if(data)data = JSON.stringify(data);
 	var settings = {
 		type: type,
 		data: data,
 		success: function(result, status, xhr){ T.apiSuccessHandler(request, result, status, xhr, callback); }, 
-		error: function(result, status, xhr){ T.apiErrorHandler(request, result, status, xhr, callback); }, 
+		error: function(result, status, xhr){ T.apiErrorHandler(request, result, status, xhr, errorCallback); }, 
 		dataType: 'json'
 	};
 
@@ -212,9 +212,10 @@ SFManager.prototype.updateDisplay = function(request, result){
 			$table.append(this.makeHeaderRow(result[0]));
 		}
 
-		var ipts = 'source,api_key,base_url,default_endpoint,default_querystring,active';
+		var ipts = 'source,api_key,base_url,default_endpoint,default_querystring,default_payload,parser,description,active';
+		var eMap = {"description": 'textarea'};
 		$.each(result, function(idx, row){
-			var $tr = T.makeResultTableRow(row, ipts);
+			var $tr = T.makeResultTableRow(row, ipts, null, true, eMap);
 			$table.append($tr);
 		});
 
@@ -222,7 +223,7 @@ SFManager.prototype.updateDisplay = function(request, result){
 		$table.empty();
 		ipts = ipts.split(',');
 		$.each(ipts, function(idx, ipt){
-			$table.append(T.makeNewRowRow(ipt));
+			$table.append(T.makeNewRowRow(ipt, null, eMap));
 		});
 		break;
 
@@ -341,6 +342,8 @@ SFManager.prototype.savedRows = function(request, result){
 }
 
 SFManager.prototype.deleteRows = function(request){
+	$("#notification").css("visibility","hidden");
+
 	var T = this;
 	var $toDelete = $('#rows-table input:checked'); 
 	if($toDelete.length){
@@ -361,6 +364,9 @@ SFManager.prototype.deletedRows = function(request, result){
 		this.getRows(request.split('/')[0]);
 		break;
 	}
+
+	$("#notification").css("visibility","visible");
+	$("#notification").html("Rows deleted");
 }
 
 
