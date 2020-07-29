@@ -48,6 +48,7 @@ try{
 	foreach($digests2mail as $subject=>$data){
 		$mail->Subject = "BBSF: ".$subject;
 		$mail->Body = $data['body']; 
+		$log->info("Trying to send email ".$mail->subject." to $to on ".$mail->Host.":".$mail->Port." using security ".$mail->SMTPSecure);
 		if($mail->Send()){
 			$log->info("Emailed subject $subject to $to");
 			foreach($data['digests'] as $dg){
