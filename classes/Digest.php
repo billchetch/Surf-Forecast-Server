@@ -85,7 +85,7 @@ class Digest extends chetch\db\DBObject{
 	}
 	
 	public function setStatus($status){
-		$this->rowdata['status'] = $status;
+		$this->set('status', $status);
 	}
 	
 	public function write($readAgain = false){

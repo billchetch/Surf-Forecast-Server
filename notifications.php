@@ -52,6 +52,8 @@ try{
 		$log->info("Trying to send email ".$mail->Subject." to $to on ".$mail->Host.":".$mail->Port." using security ".$mail->SMTPSecure);
 		if($mail->Send()){
 			$log->info("Emailed subject $subject to $to");
+			$log->info("Updating status of ".count($data['digests']));
+
 			foreach($data['digests'] as $dg){
 				switch($dg->get('status')){
 					case Digest::STATUS_RECEIVED:
@@ -59,6 +61,10 @@ try{
 						break;
 					case Digest::STATUS_OUTSTANDING:
 						$newStatus = Digest::STATUS_EMAILED;
+						break;
+
+					default:
+						throw new Exception("Unrecognised digest status of ".$dg->get('status'));
 						break;
 				}
 				$dg->setStatus($newStatus);
