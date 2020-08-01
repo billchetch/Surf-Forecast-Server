@@ -66,8 +66,6 @@ class Feed extends chetch\db\DBObject{
 	    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
 		curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
 		
-		print_r($this->payload);
-
 		if(!empty($this->payload)){
 			curl_setopt($ch, CURLOPT_POST, 1);
 			//echo $this->payload; die;
