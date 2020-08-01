@@ -42,10 +42,7 @@ class Feed extends chetch\db\DBObject{
 		
 		$this->assignR2V($this->source, 'source');
 		$this->assignR2V($this->location, 'location');
-			
-		if($this->getID()){
-			if(empty($this->get('url')))throw new Exception("No URL supplied for feed");
-		}
+
 		if($this->get('url')){
 			$url = Config::replace($this->get('url')); //pre-defined replacements
 			$url = Config::replaceKeysWithValues($url, $this->getRowData());
@@ -69,6 +66,8 @@ class Feed extends chetch\db\DBObject{
 	    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
 		curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
 		
+		print_r($this->payload);
+
 		if(!empty($this->payload)){
 			curl_setopt($ch, CURLOPT_POST, 1);
 			//echo $this->payload; die;

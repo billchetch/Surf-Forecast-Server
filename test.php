@@ -66,21 +66,16 @@ use chetch\api\APIMakeRequest as APIMakeRequest;
 try{
 	$lf = "\n";
 
-	$apiURL = "http://sf.bulan-baru.com:8002/api";
-	$request = "batch";
-	$params = array('requests'=>'x,y');
-	$apiRequest = APIMakeRequest::createGetRequest($apiURL, $request, $params);
-	$apiRequest->set('request', 'locations');
-	$apiRequest->read();
-
-	print_r($apiRequest->getRowData());
+	$r = FeedRun::getLastRun();
+	print_r($r->getRowData());
 	die;
 
 
-	/*for($i = -5; $i <= 5; $i += 0.5 ){
-		echo $i.'='.normalDistribution($i, 1).$lf;
-	}
-	die;*/
+	$id = 2;
+	$f = Feed::createInstanceFromID($id);
+	$f->download();
+	echo $f->data;
+	die;
 
 	$lfr = FeedRun::getLastRun();
 	$millers = Location::createInstanceFromID(1);

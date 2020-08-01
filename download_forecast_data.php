@@ -89,6 +89,10 @@ try{
 		$s = Digest::formatAssocArray($currentFeedRun->getRowData());
 		$digest->addDigestInfo("CURRENT RUN", $s);
 	}
+	if(count($errors)){
+		$s = Digest::formatAssocArray($errors);
+		$digest->addDigestInfo("ERRORS", $s);
+	}
 	
 	$digest->addDigestInfo("LOCATIONS UPDATED WITH MAX TIDAL VARIATION", $locationsUpdatedCount);
 	$digest->addDigestInfo("FEED RESULTS DELETED", $deletedFeedResultsCount);
