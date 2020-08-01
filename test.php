@@ -66,11 +66,6 @@ use chetch\api\APIMakeRequest as APIMakeRequest;
 try{
 	$lf = "\n";
 
-	$r = FeedRun::getLastRun();
-	print_r($r->getRowData());
-	die;
-
-
 	$id = 2;
 	$f = Feed::createInstanceFromID($id);
 	$f->download();
