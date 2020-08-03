@@ -16,7 +16,12 @@ class MagicseaweedAPIParser extends Parser{
 	
 	public function parse($result){ //result is an instance of FeedResult
 		$data = parent::parse($result);
-		
+		if(!empty($data['error_response'])){
+			$errMsg = !empty($data['error_response']['error_msg']) ? $data['error_response']['error_msg'] : "Error response data found in donwloaded feed";
+			throw new Exception($errMsg);
+		}
+
+
 		$forecast = array();
 		$forecast['forecast_from'] = $this->getForecastDateAndTime($data[0]['localTimestamp'], null, true, false);
 		$forecast['forecast_to'] = $this->getForecastDateAndTime($data[count($data) - 1]['localTimestamp'], null, true, false);

@@ -186,7 +186,7 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						break;
 						
 					case 'feeds':
-						$data = Feed::createCollectionAsRows($params);
+					    $data = Feed::createCollectionAsRows($params);
 						break;
 						
 					default:
