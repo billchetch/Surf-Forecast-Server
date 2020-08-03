@@ -65,14 +65,27 @@ use chetch\api\APIMakeRequest as APIMakeRequest;
 
 try{
 	$lf = "\n";
+	$lfr = FeedRun::getLastRun();
+	
 
-	$id = 2;
-	$f = Feed::createInstanceFromID($id);
-	$f->download();
-	echo $f->data;
+	$feeds = Feed::createCollection(null, 'source_id=5');
+	foreach($feeds as $f){
+		$f->download();
+		$vals = $f->getFeedResultValues();
+		$vals['feed_run_id'] = $lfr->id;
+		$result = FeedResult::createInstance($vals, false);
+		$result->write();
+		$result->read();
+		try{
+			$forecastData = $result->parse();
+			echo "Parsed result ".$result->getID().$lf;
+		} catch (Exception $e){
+			echo $e->getMessage();
+		}
+		$result->delete();
+	}
 	die;
 
-	$lfr = FeedRun::getLastRun();
 	$millers = Location::createInstanceFromID(1);
 	$sphinx = Location::createInstanceFromID(6);
 
