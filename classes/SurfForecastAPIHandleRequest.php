@@ -198,7 +198,7 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 			case self::SOURCE_CACHE:
 				//this will attempt to read a request result direct from cache table
 				try{
-					if(empty($this->id))throw new Exception("Request $req is not present in cache");
+					if(empty($this->id))throw new Exception("Request $request is not present in cache");
 					$this->setRowData(array('last_requested'=>self::now()));
 					//$this->write();
 					//$data = json_decode($this->data, true);
