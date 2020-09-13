@@ -27,7 +27,7 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 			case 'device':
 			case 'devices':
 			case 'about':
-			case 'location-info':
+			case 'position-info':
 				$this->source = self::SOURCE_DATABASE;
 				break;
 				
@@ -35,7 +35,7 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 				break;
 		}
 	}
-	
+
 	protected function processGetRequest($request, $params){
 		$this->translateGetRequest($request, $params);	
 		
