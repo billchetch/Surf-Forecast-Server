@@ -25,7 +25,7 @@ try{
 	$body = '';
 	$lf = "\n";
 	$digests2mail = array();
-	$max = min(count($digests), Config::get('MAX_NOTIFICATIONS_TO_SEND', 5));
+	$max = min(count($digests), Config::get('MAX_NOTIFICATIONS_TO_SEND', 8));
 	$log->info("Preparing ".count($max)." digests to send");
 	for($i = 0; $i < $max; $i++){
 		$dg = $digests[$i];
