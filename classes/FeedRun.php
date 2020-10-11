@@ -111,7 +111,7 @@ class FeedRun extends \chetch\db\DBObject{
 			if($feedRun->status == 'PARSING'){
 				$statusData = array();
 				
-				$results = FeedResult::createCollection(null, "feed_result_id=".$feedRun->id." AND parsed=0");
+				$results = FeedResult::createCollection(null, "feed_run_id=".$feedRun->id." AND parsed=0");
 				$log->info("Parsing ".count($results)." results");
 				
 				$statusData['parsing'] = count($results);
