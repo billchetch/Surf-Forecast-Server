@@ -11,7 +11,7 @@ class Digest extends chetch\db\DBObject{
 	private $digestInfo = array();
 	
 	public static function initialise(){
-		$t = Config::get('SYS_DIGESTS_TABLE', 'digests');
+		$t = Config::get('SYS_DIGESTS_TABLE', 'sf_digests');
 		static::setConfig('TABLE_NAME', $t);
 		static::setConfig('LINE_FEED', Config::get('DIGEST_LINE_FEED', "\n"));
 		
