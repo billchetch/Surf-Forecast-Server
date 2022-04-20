@@ -14,7 +14,7 @@ class FeedRun extends \chetch\db\DBObject{
 	 * static methods
 	 */
 	public static function initialise(){
-		$t =  Config::get('FEED_RUNS_TABLE', 'feed_runs');
+		$t =  Config::get('FEED_RUNS_TABLE', 'sf_feed_runs');
 		self::setConfig('TABLE_NAME', $t);
 		self::setConfig('SELECT_ROW_SQL', "SELECT * FROM $t WHERE status<>'COMPLETED'");
 		self::setConfig('SELECT_SQL', "SELECT *, unix_timestamp(now()) - unix_timestamp(created) AS secs FROM $t");

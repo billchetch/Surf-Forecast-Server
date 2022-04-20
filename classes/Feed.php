@@ -16,7 +16,7 @@ class Feed extends chetch\db\DBObject{
 	 * static methods
 	 */
 	public static function initialise(){
-		$ftbl = Config::get('FEEDS_TABLE', 'feeds');
+		$ftbl = Config::get('FEEDS_TABLE', 'sf_feeds');
 		static::setConfig('TABLE_NAME', $ftbl);
 		
 		//base SQL

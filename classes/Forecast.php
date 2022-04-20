@@ -5,8 +5,8 @@ use \Exception as Exception;
 
 class Forecast extends \chetch\db\DBObject{
 	static public function initialise(){
-		$t = Config::get('FORECASTS_TABLE', 'forecasts');
-		$l = Config::get('LOCATIONS_TABLE', 'locations');
+		$t = Config::get('FORECASTS_TABLE', 'sf_forecasts');
+		$l = Config::get('LOCATIONS_TABLE', 'sf_locations');
 		static::setConfig('TABLE_NAME', $t);
 		$sql = "SELECT f.*, l.max_tidal_variation, l.timezone, l.timezone_offset, l.latitude, l.longitude FROM $t f INNER JOIN $l l ON f.location_id=l.id";
 		static::setConfig('SELECT_SQL', $sql);

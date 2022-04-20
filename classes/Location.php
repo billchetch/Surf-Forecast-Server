@@ -1,7 +1,7 @@
 <?php
 class Location extends \chetch\db\DBObject{
 	public static function initialise(){
-		$t = \chetch\Config::get("LOCATIONS_TABLE", 'locations');
+		$t = \chetch\Config::get("LOCATIONS_TABLE", 'sf_locations');
 		self::setConfig('TABLE_NAME', $t);
 		$sql = "SELECT * FROM $t";
 		self::setConfig('SELECT_SQL', $sql);
