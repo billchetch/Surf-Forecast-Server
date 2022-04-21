@@ -200,6 +200,7 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 				try{
 					if(empty($this->id))throw new Exception("Request $request is not present in cache");
 					$this->setRowData(array('last_requested'=>self::now(false)));
+					$this->remove('base_url');
 					$this->write();
 					$data = json_decode($this->get('data'), true);
 					break;
