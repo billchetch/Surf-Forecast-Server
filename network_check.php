@@ -85,10 +85,12 @@ try{
 	//If the time is suffucient between updates then we can try and update over network again
 	$doNetworkUpdate = false;
 	$dt = $si->getData('last_updated_from_network');
-	if(!$dt || (time() - strtotime($dt) > Config::get('UPDATE_FROM_NETWORK_TIME', 60*60*4))){
+	$minTimeForUpdate = Config::get('UPDATE_FROM_NETWORK_TIME', 60*60*4);
+	if(!$dt || (time() - strtotime($dt) > $minTimeForUpdate)){
 		$doNetworkUpdate = true;
 	} else {
-		$log->info("No need to update from network as last update was too recent");
+		$secsSinceLastUpdate = (time() - strtotime($dt));
+		$log->info("No need to update from network as last update was too recent ($secsSinceLastUpdate seconds < $minTimeForUpdate seconds)");
 	}
 	
 	//First we get latest GPS location of network and store for reporting purposes
