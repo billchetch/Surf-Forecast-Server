@@ -10,6 +10,7 @@ use chetch\api\APIMakeRequest as APIMakeRequest;
 
 function pingTest($ipType, $ip, &$digest){
 	$info = "$ipType: ".($ip ? $ip : " no IP to test");
+	//secho "Pinging: $info ..\n";
 	$rval = false;
 	if($ip){
 		$stats = Network::ping($ip);
@@ -211,6 +212,6 @@ try{
 
 } catch (Exception $e){
 	$log->exception($e->getMessage());
-	$log->info("Network check exited because of exception");
+	$log->info("Network check exited because of exception: ".$e->getMessage());
 }
 ?>
