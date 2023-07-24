@@ -42,6 +42,10 @@ try{
 		case 'test':
 			require('test.php');
 			break;
+
+		case 'proxy_feed':
+			require('proxy_feed.php');
+			break;
 			
 		case 'none':
 			break;
