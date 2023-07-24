@@ -33,7 +33,9 @@ function download($url, $payload, $encoding){
 	{
         return $data;
     } else {
-        throw new Exception($error);
+        //throw new Exception($error);
+		echo "ERROR: $error $errno \n";
+		print_r($info);
     }
 }
 
@@ -148,6 +150,6 @@ try{
 	/*$error = array();
 	$error['error'] = $e->getMessage();
 	echo json_encode($error);*/
-	throw $e;
+	var_dump($e);
 }
 ?>
