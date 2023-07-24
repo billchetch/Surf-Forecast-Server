@@ -8,6 +8,15 @@ $trace = false;
 function download($url, $payload, $encoding){
 	//retrieve data
 	$ch = curl_init();
+	$headers = array();
+
+	$headers[] = "Origin: https://www.surfline.com";
+	$headers[] = "Referer: https://www.surfline.com/";
+	$headers[] = 'Sec-Ch-Ua: "Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"';
+	$headers[] = 'Sec-Ch-Ua-Mobile: ?0';
+	$headers[] = 'Sec-Ch-Ua-Platform: "macOS"';
+	$headers[] = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36";
+	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
 	curl_setopt($ch, CURLOPT_URL, $url); 
 	curl_setopt($ch, CURLOPT_HEADER, false); 
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
