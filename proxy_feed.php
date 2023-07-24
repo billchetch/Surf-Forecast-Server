@@ -52,8 +52,8 @@ try{
 	$forecasts = array();
 	//note: don't change the order of these ... wave must come first!'
 	$forecasts['wave'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true&units%5BswellHeight%5D=M&units%5BwaveHeight%5D=M");
-	//$forecasts['wind'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&corrected=false&cacheEnabled=true&units%5BwindSpeed%5D=KPH");
-	//$forecasts['rating'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true");
+	$forecasts['wind'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&corrected=false&cacheEnabled=true&units%5BwindSpeed%5D=KPH");
+	$forecasts['rating'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true");
 	
 	$baseurl = "https://services.surfline.com/kbyg/spots/forecasts/";
 	$headers = array();
