@@ -130,7 +130,7 @@ try{
 
 				case 'wind':
 					$row['wind_speed'] = $d['speed']; //in kph
-					$row['direction'] = $d['direction']; //in degrees
+					$row['wind_direction'] = $d['direction']; //in degrees
 					break;
 
 				case 'rating':
