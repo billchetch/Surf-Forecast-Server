@@ -9,7 +9,7 @@ class Parser{
 		if($format != 'JSON')throw new Exception("Parser::parse format $format is not JSON");
 		$this->data = json_decode($dataAsString, true);
 		if(json_last_error()){
-			throw new Exception(json_last_error());
+			throw new Exception("JSON last error: ".json_last_error());
 		}
 		return $this->data;
 	}

@@ -126,9 +126,10 @@ class FeedRun extends \chetch\db\DBObject{
 						
 						//we have the forecast data so let's build the objects and then they can write to the database
 						$forecastData['feed_run_id'] = $feedRun->id;
+						$log->info("Forecast data created ... savling to database");
 						$forecast = Forecast::createInstance($forecastData);
-						
 						$forecast->write();
+						$log->info("Forecast data saved.");
 						
 						self::$dbh->commit();
 						$statusData['parsed']++;
@@ -136,10 +137,13 @@ class FeedRun extends \chetch\db\DBObject{
 						$log->info("Parsed result and created forecast ".$forecast->id);
 					} catch (Exception $e){
 						self::$dbh->rollback();
+						debug_print_backtrace();
+
 						$msg = "Parse failure on result ".$result->id;
 						if(!empty($result->responseInfo) && isset($result->responseInfo['url'])){
 							$msg.= " when parsing response from ".$result->responseInfo['url'];
 						}
+						
 						//$msg.= ": ".$result->response;
 						array_push($errors, "$msg: ".$e->getMessage());
 						$log->exception("$msg: ".$e->getMessage());

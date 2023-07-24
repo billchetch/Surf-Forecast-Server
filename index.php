@@ -45,6 +45,7 @@ try{
 
 		case 'proxy_feed':
 			require('proxy_feed.php');
+			die;
 			break;
 			
 		case 'none':

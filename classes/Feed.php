@@ -20,8 +20,8 @@ class Feed extends chetch\db\DBObject{
 		static::setConfig('TABLE_NAME', $ftbl);
 		
 		//base SQL
-		$stbl = Config::get('SOURCES_TABLE');
-		$ltbl = Config::get('LOCATIONS_TABLE');
+		$stbl = Config::get('SOURCES_TABLE', 'sf_sources');
+		$ltbl = Config::get('LOCATIONS_TABLE', 'sf_locations');
 		$sql = "SELECT f.*, s.source, s.api_key, l.location, l.latitude, l.longitude, concat(s.base_url, IF(f.endpoint IS NOT NULL, concat('/', f.endpoint), ''), IF(f.querystring IS NOT NULL, concat('?', f.querystring), '')) AS url ";
 		$sql.= "FROM $ftbl f INNER JOIN $stbl s ON f.source_id=s.id INNER JOIN $ltbl l ON f.location_id=l.id ";
 		

@@ -53,6 +53,8 @@ try{
 	$baseurl = "http://services.surfline.com/kbyg/spots/forecasts/";
 
 	$rows = array();
+	$fromTimestamp = 0;
+	$toTimestamp = 0;
 	foreach($forecasts as $k=>$f){
 		$url = $baseurl.$k.'?'.$f['qs'];
 
@@ -70,14 +72,17 @@ try{
 		foreach($data2add as $d){
 			//create the row we want to fill
 			$ts = $d['timestamp'];
-			if(!isset($rows[$ts])){
+			$tskey = "T$ts";
+			if(!isset($rows[$tskey])){
 				if($k == 'wave'){
-					$rows[$ts] = array('timestamp'=>$ts, 'date_time'=>date('Y-m-d H:i:s', $ts)); //this is UTC
+					$rows[$tskey] = array('timestamp'=>$ts, 'date_time'=>date('Y-m-d H:i:s', $ts)); //this is UTC
 				} else {
 					if($trace)echo "Cannot find timestamp key $ts in array when processing $k so skipping $lf ";
 					continue;
 				}
 			}
+			if($fromTimestamp == 0 || $ts < $fromTimestamp)$fromTimestamp = $ts;
+			if($ts > $toTimestamp)$toTimestamp = $ts;
 			
 			//now we do individual parsing
 			$row = array();
@@ -126,14 +131,17 @@ try{
 
 			//assign this row to the row by timestamp
 			foreach($row as $rk=>$rv){
-				$rows[$ts][$rk] = $rv;
+				$rows[$tskey][$rk] = $rv;
 			}
 		} //end adding data from a particular url
 	} //end looping throw urls
 
 	//here are rows are complete
-	echo json_encode($rows);
-
+	$result = array();
+	$result['period'] = array('from'=>$fromTimestamp, 'to'=>$toTimestamp, 'from_date_time'=>date('Y-m-d H:i:s', $fromTimestamp), 'to_date_time'=>date('Y-m-d H:i:s', $toTimestamp));
+	$result['data'] = $rows;
+	$s = json_encode($result);
+	echo $s;
 
 } catch (Exception $e){
 	/*$error = array();

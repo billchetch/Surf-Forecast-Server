@@ -602,7 +602,7 @@ class ForecastHour extends ForecastDetail{
 	public $forecastTime;
 	
 	static public function initialise(){
-		$t = Config::get('FORECAST_HOURS_TABLE');
+		$t = Config::get('FORECAST_HOURS_TABLE', 'sf_forecast_hours');
 		static::setConfig('TABLE_NAME', $t);
 		static::setConfig('SELECT_SQL', "SELECT * FROM $t"); 
 		static::setConfig('SELECT_DEFAULT_FILTER', "forecast_id=:forecast_id");
@@ -628,7 +628,7 @@ class ForecastDay extends ForecastDetail{
 	public $forecastDate;
 	
 	static public function initialise(){
-		$t = Config::get('FORECAST_DAYS_TABLE');
+		$t = Config::get('FORECAST_DAYS_TABLE', 'sf_forecast_days');
 		static::setConfig('TABLE_NAME', $t);
 		static::setConfig('SELECT_SQL', "SELECT * FROM $t"); 
 		static::setConfig('SELECT_DEFAULT_FILTER', "forecast_id=:forecast_id");

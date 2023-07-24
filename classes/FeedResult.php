@@ -16,13 +16,13 @@ class FeedResult extends chetch\db\DBObject{
 	 */
 	
 	public static function initialise(){
-		$rtbl = Config::get('FEED_RESULTS_TABLE', 'feed_results');
+		$rtbl = Config::get('FEED_RESULTS_TABLE', 'sf_feed_results');
 		static::setConfig('TABLE_NAME', $rtbl);
 		
 		$sql = "SELECT r.*, f.source_id, f.location_id, f.response_format, s.source, s.parser, l.timezone ";
-		$ftbl = Config::get('FEEDS_TABLE', 'feeds');
-		$stbl = Config::get('SOURCES_TABLE', 'sources');
-		$ltbl = Config::get('LOCATIONS_TABLE', 'locations');
+		$ftbl = Config::get('FEEDS_TABLE', 'sf_feeds');
+		$stbl = Config::get('SOURCES_TABLE', 'sf_sources');
+		$ltbl = Config::get('LOCATIONS_TABLE', 'sf_locations');
 		$sql.= "FROM $rtbl r INNER JOIN $ftbl f ON r.feed_id=f.id INNER JOIN $stbl s ON f.source_id=s.id INNER JOIN $ltbl l ON f.location_id=l.id ";
 		static::setConfig('SELECT_SQL', $sql);
 		static::setConfig('SELECT_DEFAULT_FILTER', 'r.parsed=0');

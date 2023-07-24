@@ -344,8 +344,21 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						
 					case 'sources':
 					case 'source':
-						$r = Sources::createInstance($payload, false);
-						$id = $r->write();
+						$s = Sources::createInstance($payload, false);
+						$id = $s->write(true);
+
+						$locations = Location::createCollection();
+
+						foreach($locations as $l){
+							$vals = array();
+							$vals['source_id'] = $id;
+							$vals['location_id'] = $l->getID();
+							$vals['querystring'] = $s->get('default_querystring');
+							$vals['payload'] = $s->get('default_payload');
+							$vals['endpoint'] = $s->get('default_endpoint');
+							$f = Feed::createInstance($vals, false);
+							$f->write();
+						}
 						$data2return = array('id'=>$id);
 						break;
 						

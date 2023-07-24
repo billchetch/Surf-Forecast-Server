@@ -115,7 +115,7 @@ SFManager.prototype.makeResultTableRow = function(row, ipts, fields, exclude, en
 					throw new Error("Cannot determine entity " + entityMap[p]);
 			}
 		} else {
-			var v = row[p] ? row[p].replace(/"/g,"&quot;") : '';
+			var v = row[p] && typeof(row[p]) == 'string' ? row[p].replace(/"/g,"&quot;") : (row[p] != null ? row[p] : '');
 			$ipts[p] = $('<input type="text" value="' + v + '" class="input-' + p + '" name="' + p + '"/>');
 		}
 		$.data($ipts[p][0], 'oldValue', row[p] == null ? '' : row[p]);
