@@ -1,5 +1,5 @@
 <?php
-//require_once('_include.php');
+require_once('_include.php');
 
 use \chetch\Config as Config;
 
@@ -12,6 +12,7 @@ function download($url, $payload, $encoding){
 	curl_setopt($ch, CURLOPT_HEADER, false); 
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	if($encoding)curl_setopt($ch, CURLOPT_ENCODING, $this->get('encoding'));
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
 	curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
 		
@@ -38,19 +39,19 @@ function download($url, $payload, $encoding){
 
 try{
 	$lf = "\n";
-	$source = $_GET['source'];
+	//$source = $_GET['source'];
 
 	//At the moment the only source is surfline so we don't check source (this an come later)'
-	$spotId = $_GET['spot_id']; //"640a69004eb375bdb39e4cb3";
-	
+	//$spotId = $_GET['spot_id']; //"640a69004eb375bdb39e4cb3";
+	$spotId = "640a69004eb375bdb39e4cb3";
 	
 	$forecasts = array();
 	//note: don't change the order of these ... wave must come first!'
 	$forecasts['wave'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true&units%5BswellHeight%5D=M&units%5BwaveHeight%5D=M");
-	$forecasts['wind'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&corrected=false&cacheEnabled=true&units%5BwindSpeed%5D=KPH");
-	$forecasts['rating'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true");
+	//$forecasts['wind'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&corrected=false&cacheEnabled=true&units%5BwindSpeed%5D=KPH");
+	//$forecasts['rating'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true");
 	
-	$baseurl = "http://services.surfline.com/kbyg/spots/forecasts/";
+	$baseurl = "https://services.surfline.com/kbyg/spots/forecasts/";
 
 	$rows = array();
 	$fromTimestamp = 0;
