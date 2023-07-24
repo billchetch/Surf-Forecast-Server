@@ -1,5 +1,5 @@
 <?php
-require_once('_include.php');
+//require_once('_include.php');
 
 use \chetch\Config as Config;
 
@@ -35,19 +35,17 @@ function download($url, $payload, $encoding, $headers){
 	{
         return $data;
     } else {
-        //throw new Exception($error);
-		echo "ERROR: $error $errno \n";
-		print_r($info);
+        throw new Exception($error ? $errno.': '.$error : 'http code: '.$info['http_code']);
     }
 }
 
 try{
 	$lf = "\n";
-	//$source = $_GET['source'];
+	$source = $_GET['source'];
 
 	//At the moment the only source is surfline so we don't check source (this an come later)'
-	//$spotId = $_GET['spot_id']; //"640a69004eb375bdb39e4cb3";
-	$spotId = "640a69004eb375bdb39e4cb3";
+	$spotId = $_GET['spot_id']; //"640a69004eb375bdb39e4cb3";
+	//$spotId = "640a69004eb375bdb39e4cb3";
 	
 	$forecasts = array();
 	//note: don't change the order of these ... wave must come first!'
