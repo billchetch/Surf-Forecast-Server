@@ -5,17 +5,10 @@ use \chetch\Config as Config;
 
 $trace = false;
 
-function download($url, $payload, $encoding){
+function download($url, $payload, $encoding, $headers){
 	//retrieve data
 	$ch = curl_init();
-	$headers = array();
-
-	$headers[] = "Origin: https://www.surfline.com";
-	$headers[] = "Referer: https://www.surfline.com/";
-	$headers[] = 'Sec-Ch-Ua: "Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"';
-	$headers[] = 'Sec-Ch-Ua-Mobile: ?0';
-	$headers[] = 'Sec-Ch-Ua-Platform: "macOS"';
-	$headers[] = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36";
+	
 	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
 	curl_setopt($ch, CURLOPT_URL, $url); 
 	curl_setopt($ch, CURLOPT_HEADER, false); 
@@ -63,6 +56,13 @@ try{
 	//$forecasts['rating'] = array('qs'=>"spotId=$spotId&days=5&intervalHours=1&cacheEnabled=true");
 	
 	$baseurl = "https://services.surfline.com/kbyg/spots/forecasts/";
+	$headers = array();
+	$headers[] = "Origin: https://www.surfline.com";
+	$headers[] = "Referer: https://www.surfline.com/";
+	//$headers[] = 'Sec-Ch-Ua: "Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"';
+	//$headers[] = 'Sec-Ch-Ua-Mobile: ?0';
+	//$headers[] = 'Sec-Ch-Ua-Platform: "macOS"';
+	$headers[] = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36";
 
 	$rows = array();
 	$fromTimestamp = 0;
@@ -71,7 +71,7 @@ try{
 		$url = $baseurl.$k.'?'.$f['qs'];
 
 		if($trace)echo "Starting download of $k: $url $lf";
-		$s = download($url, null, null);
+		$s = download($url, null, null, $headers);
 		$data = json_decode($s, true);
 		if(json_last_error()){
 			throw new Exception("JSON error: ".json_last_error());
