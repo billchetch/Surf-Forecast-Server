@@ -413,7 +413,7 @@ class Forecast extends \chetch\db\DBObject{
 	}
 	
 	//$syn1 takes priority
-	public static function combineForecassts($f1, $f2){
+	public static function combineForecasts($f1, $f2){
 		//we only check days and hours
 		$f1['days'] = self::combineArrays($f1['days'], $f2['days']);
 		$f1['hours'] = self::combineArrays($f1['hours'], $f2['hours']);
