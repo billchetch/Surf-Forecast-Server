@@ -15,6 +15,14 @@ class Forecast extends \chetch\db\DBObject{
 		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id");	
 	}
 
+	static public function getForecast($feedRunID, $sourceID, $locationID){
+		$forecasts = self::getForecasts($feedRunID, $locationID);
+		foreach($forecasts as $f){
+			if($f['source_id'] == $sourceID)return $f;
+		}
+		return null;
+	}
+
 	static public function getForecasts($feedRunID, $location){
 		$locationID = $location->getID();
 		$forecastLocationID = !empty($location->get('forecast_location_id')) ? $location->get('forecast_location_id') : $locationID;

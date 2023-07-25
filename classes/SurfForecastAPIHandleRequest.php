@@ -104,27 +104,35 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						$lastFeedRun = FeedRun::getLastRun();
 						if(empty($lastFeedRun->getID()))throw new Exception("No feed run found");
 						
-						$weighting = Config::get('FORECAST_WEIGHTING'); 
-						$forecast = Forecast::getSynthesis($lastFeedRun, $location, $weighting);
-						try{
-							$secsOld = $lastFeedRun->get('secs') + 2*24*3600;
-							$prevFeedRun = FeedRun::getLastRun($secsOld);
-							if($prevFeedRun && $prevFeedRun->id){
-								$prevForecast = Forecast::getSynthesis($prevFeedRun, $location, $weighting);
-								$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
-								
-								//ugly hack here as the most recent forecast current day is sometimes not complete depending on when the download was done (e.g after first tide extreme)
-								//as a result we use the previous forecast day
-								//TODO: some logic that preserves the incomplete data on the current day rather than overwriting it
-								$key = date("Y-m-d")." ".$forecast['timezone_offset'];
-								if(isset($prevForecast['days'][$key])){
-									$forecast['days'][$key] = $prevForecast['days'][$key];
-								}
-							}
-						} catch (Exception $e){
+						$sourceID = isset($requestParts[2]) ? $requestParts[2] : 0;
+						if($sourceID){
+							$forecast = Forecast::getForecast($lastFeedRun->getID(), $sourceID, $locationID);
+						} else {
+							$weighting = Config::get('FORECAST_WEIGHTING'); 
+							$forecast = null;
+							$prevForecast = null;
+							$forecast = Forecast::getSynthesis($lastFeedRun, $location, $weighting);
+							try{
+								$secsOld = $lastFeedRun->get('secs') + 2*24*3600;
+								$prevFeedRun = FeedRun::getLastRun($secsOld);
 							
+								if($prevFeedRun && $prevFeedRun->id){
+									$prevForecast = Forecast::getSynthesis($prevFeedRun, $location, $weighting);
+								
+									$forecast = Forecast::combineSyntheses($forecast, $prevForecast);
+								
+									//ugly hack here as the most recent forecast current day is sometimes not complete depending on when the download was done (e.g after first tide extreme)
+									//as a result we use the previous forecast day
+									//TODO: some logic that preserves the incomplete data on the current day rather than overwriting it
+									$key = date("Y-m-d")." ".$forecast['timezone_offset'];
+									if(isset($prevForecast['days'][$key])){
+										$forecast['days'][$key] = $prevForecast['days'][$key];
+									}
+								}
+							} catch (Exception $e){
+							
+							}
 						}
-						
 						//Allow for specifying only hours within daylight
 						if($requestParts[0] == 'forecast-daylight'){
 							$tzo = $forecast['timezone_offset'];
@@ -150,8 +158,8 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						$data = $forecast;
 						
 						//allow for array key referencing in URL
-						if(isset($request[2]) && isset($data[$request[2]])){ 
-							$data = $data[$request[2]];
+						if(isset($request[3]) && isset($data[$request[3]])){ 
+							$data = $data[$request[3]];
 						}
 						break;
 						
