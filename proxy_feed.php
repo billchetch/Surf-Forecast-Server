@@ -39,6 +39,26 @@ function download($url, $payload, $encoding, $headers){
     }
 }
 
+
+function cmp($ar1, $ar2, $k){
+	if($ar1[$k] > $ar2[$k]){
+		return -1;
+	} elseif ($ar1[$k] < $ar2[$k]) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+function sortSwells($s1, $s2){
+	$keys2cmp = array('optimalScore', 'impact');
+	foreach($keys2cmp as $k){
+		$v = cmp($s1, $s2, $k);
+		if($v != 0)return $v;
+	}
+	return 0;
+}
+
 try{
 	$lf = "\n";
 	$source = $_GET['source'];
@@ -100,17 +120,11 @@ try{
 				case 'wave':
 					$surf = $d['surf'];
 					$swells = $d['swells'];
+					usort($swells, "sortSwells");
+					$primarySwell = isset($swells[0]) ? $swells[0] : null;
+					$secondarySwell = isset($swells[1]) ? $swells[1] : null;
+					
 					$dkey = 'height'; //in meters
-					$primarySwell = null;
-					$secondarySwell = null;
-					foreach($swells as $swell){
-						if(!$primarySwell && $swell['height'] > 0){
-							$primarySwell = $swell;
-						} elseif($primarySwell && !$secondarySwell && $swell['height'] > 0){
-							$secondarySwell = $swell;
-						}
-					}
-
 					$min = $surf['min'];
 					$max = min($surf['max'], $min + 1);
 					$row['swell_height'] = ($max + $min) / 2;
