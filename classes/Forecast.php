@@ -15,10 +15,12 @@ class Forecast extends \chetch\db\DBObject{
 		static::setConfig('SELECT_ROW_SQL', $sql." WHERE f.feed_run_id=:feed_run_id AND f.source_id=:source_id AND f.location_id=:location_id");	
 	}
 
-	static public function getForecast($feedRunID, $sourceID, $locationID){
-		$forecasts = self::getForecasts($feedRunID, $locationID);
+	static public function getForecast($feedRunID, $sourceID, $location){
+		$forecasts = self::getForecasts($feedRunID, $location);
 		foreach($forecasts as $f){
-			if($f['source_id'] == $sourceID)return $f;
+			if($f->get('source_id') == $sourceID){
+				return $f->asAssocArray(true);
+			}
 		}
 		return null;
 	}
@@ -411,12 +413,12 @@ class Forecast extends \chetch\db\DBObject{
 	}
 	
 	//$syn1 takes priority
-	public static function combineSyntheses($syn1, $syn2){
+	public static function combineForecassts($f1, $f2){
 		//we only check days and hours
-		$syn1['days'] = self::combineArrays($syn1['days'], $syn2['days']);
-		$syn1['hours'] = self::combineArrays($syn1['hours'], $syn2['hours']);
+		$f1['days'] = self::combineArrays($f1['days'], $f2['days']);
+		$f1['hours'] = self::combineArrays($f1['hours'], $f2['hours']);
 		
-		return $syn1;
+		return $f1;
 	}
 	
 
@@ -580,6 +582,23 @@ class Forecast extends \chetch\db\DBObject{
 				$this->days[$key] = $fd;
 			}
 		}
+	}
+
+	public function asAssocArray($addDetails = true){
+		$ar = $this->getRowData();
+		
+		if($addDetails){
+			$this->addDetails();
+			$ar['hours'] = array();
+			foreach($this->hours as $k=>$v){
+				$ar['hours'][$k] = $v->getRowData();
+			}
+			$ar['days'] = array();
+			foreach($this->days as $k=>$v){
+				$ar['days'][$k] = $v->getRowData();
+			}
+		}
+		return $ar;
 	}
 }
 
