@@ -65,6 +65,7 @@ class Feed extends chetch\db\DBObject{
 	    if($this->get('encoding'))curl_setopt($ch, CURLOPT_ENCODING, $this->get('encoding'));
 	    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
 		curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, Config::get('CURLOPT_SSL_VERIFYPEER', true));
 		
 		if(!empty($this->payload)){
 			curl_setopt($ch, CURLOPT_POST, 1);

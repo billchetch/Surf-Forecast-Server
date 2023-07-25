@@ -92,10 +92,9 @@ function download($url, $payload, $encoding){
 	{
         return $data;
     } else {
-        throw new Exception($error);
+        throw new Exception($error ? $errno.' '.$error : 'httpcode: '.$info['http_code']);
     }
 }
-
 
 
 try{
@@ -103,21 +102,28 @@ try{
 	$log = Logger::getLog('test', Logger::LOG_TO_SCREEN);
 	$log->info('Test started...');
 
-	/*$feeds = Feed::createCollection();
-	foreach($feeds as $feed){
-		if(empty($feed->url))throw new Exception("Feed ID ".$feed->id." has no URL");
-		$log->info("Downloading ".$feed->url.'(ID: '.$feed->id.')');
-			
-	}*/
+	BMKGParser2::updateModelRun();
 
-	/*$results = FeedResult::createCollection();
-	echo "Found ".count($results)." results".$lf;
-	foreach($results as $r){
-		json_decode($r->response);
-		echo "JSLE: ".json_last_error();
-	}*/
-	$errors = array();
-	FeedRun::run($errors);
+
+	$id= 2;
+	$f = Feed::createInstanceFromID($id);
+
+	echo "Feed $id url: ".$f->url.$lf;
+	echo "Payload: ".$f->payload.$lf;
+
+	echo "Downloading....".$lf;
+	if($f->download()){
+		echo "Downloaded!".$lf;
+
+		$pdata = json_decode($f->data, true);
+		print_r($pdata['time']);
+		print_r($pdata['wdir']);
+		print_r($pdata['wspd']);
+	} else {
+		echo "Failed to download".$lf;
+		print_r($f->error);
+		print_r($f->info);
+	}
 
 } catch (Exception $e){
 	if($router && $router->loggedIn){

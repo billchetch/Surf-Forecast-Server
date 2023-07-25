@@ -14,6 +14,10 @@ try{
 	//get log and start this show
 	$log->start();
 	
+	//here we do some prep work
+	BMKGParser2::updateModelRun();
+
+
 	//do feed run stuff
 	$lastFeedRun = FeedRun::getLastRun(); //last successful feed run (used for digest)
 	

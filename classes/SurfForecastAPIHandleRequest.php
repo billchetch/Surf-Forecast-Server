@@ -350,6 +350,10 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 						$locations = Location::createCollection();
 
 						foreach($locations as $l){
+							//ignore locations that work by proxy
+							if(!empty($l['forecast_location_id']))continue;
+
+							//a genuine location with a bespoke forecast
 							$vals = array();
 							$vals['source_id'] = $id;
 							$vals['location_id'] = $l->getID();

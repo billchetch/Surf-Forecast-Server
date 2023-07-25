@@ -1,25 +1,48 @@
 <?php
+use \chetch\Config as Config;
+
 class BMKGParser2 extends Parser{
 
 	//const DEFAULT_MODEL = "w3g_reg";
 	//const DEFAULT_MODEL_VARS = '"wspd","wdir","hs","t01","dir","ptp00","ptp01","phs01","phs00"';
 	
+	const DEFAULT_MODELS_URL = 'https://pusmar.id/api21/modelrun';
 	const DEFAULT_MODEL = "w3g_hires";
 	const DEFAULT_MODEL_VARS = '"wspd","wdir","hs","t01","dir","ptp00","ptp01","phs01","phs00"';
 	
-	public static function getDateTime(){
-		$date = new DateTime("now", new DateTimeZone("UTC"));
-		/*$H = '00';
-		$h = (int)$date->format('H');
-		if($h < 12){
-			$H = '00';
-			$date->setTimestamp($now - 24*3600);
-		} elseif($h < 18){
-			$H = '12';
-			$date->setTimestamp($now - 24*3600);
-		}*/
-		$dt = $date->format('Y-m-d').'T00:00:00Z';
-		return $dt;
+	public static function updateModelRun(){
+		$ch = curl_init();
+		$url = Config::get('BMKG_MODELS_URL', BMKGParser2::DEFAULT_MODELS_URL);
+		curl_setopt($ch, CURLOPT_URL, $url); 
+		curl_setopt($ch, CURLOPT_HEADER, false); 
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::get('CURLOPT_CONNECTTIMEOUT',30));
+		curl_setopt($ch, CURLOPT_TIMEOUT, Config::get('CURLOPT_TIMEOUT',30));
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, Config::get('CURLOPT_SSL_VERIFYPEER', true));
+		
+		$data = curl_exec($ch); 
+		$error = curl_error($ch);
+		$errno = curl_errno($ch);
+		$info = curl_getinfo($ch);
+		curl_close($ch);
+
+		if($data && $errno == 0 && $info['http_code'] < 400)
+		{
+			$parsed = json_decode($data, true);
+			if(json_last_error()){
+				throw new Exception("BMKGParser2::updateModelRun failed to parse data with JSON error ".json_last_error());
+			}
+			$model = Config::get('BMKG_MODEL', BMKGParser2::DEFAULT_MODEL);
+			if(!isset($parsed[$model])){
+				throw new Exception("BMKGParser2::updateModelRun the model $model is not available");
+			}
+			//echo "Using model $model...\n";
+			$dt = $parsed[$model][0];
+			//echo "Setting modelrun to: $dt\n";
+			Config::set('BMKG_MODELRUN', $dt);
+		} else {
+			throw new Exception($error ? $errno.' '.$error : 'httpcode: '.$info['http_code']);
+		}
 	}
 	
 	
@@ -38,7 +61,7 @@ public function parse($result){
 		for($i = 0; $i < count($datetime); $i++){
 			$datestr = $datetime[$i];
 			$dt = new DateTime(date('Y-m-d H:i:s', strtotime($datestr)));
-			$dt->setTimezone($tz);
+			//$dt->setTimezone($tz); //looks like BMKG provides local times
 			$convertedDateTime[$i] = $dt->format('Y-m-d H:i:s');
 		}
 		
@@ -78,11 +101,6 @@ public function parse($result){
 		switch($var){
 			case 'wspd':
 				return round(1.852*$val, 2);
-				
-			case 'wdir':
-				$deg = round($val, 2);
-				return ($deg + 180) % 360;
-				
 				
 			default:
 				return round($val, 2);
