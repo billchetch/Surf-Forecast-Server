@@ -116,9 +116,12 @@ try{
 		echo "Downloaded!".$lf;
 
 		$pdata = json_decode($f->data, true);
-		print_r($pdata['time']);
-		print_r($pdata['wdir']);
-		print_r($pdata['wspd']);
+		print_r($pdata);
+		//print_r($pdata['time']);
+		//print_r($pdata['wdir']);
+		//print_r($pdata['wspd']);
+		//print_r($pdata['hs']);
+		//print_r($pdata['dir']);
 	} else {
 		echo "Failed to download".$lf;
 		print_r($f->error);

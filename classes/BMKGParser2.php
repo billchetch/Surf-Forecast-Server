@@ -9,6 +9,7 @@ class BMKGParser2 extends Parser{
 	//const DEFAULT_MODELS_URL = 'https://pusmar.id/api21/modelrun';
 	const DEFAULT_MODELS_URL = 'https://peta-maritim.bmkg.go.id/api21/modelrun';
 	const DEFAULT_MODEL = "w3g_hires";
+	//const DEFAULT_MODEL_VARS = '"wspd","wdir","hs","t01","dir","ptp00","ptp01","phs01","phs00"';
 	const DEFAULT_MODEL_VARS = '"wspd","wdir","hs","t01","dir","ptp00","ptp01","phs01","phs00"';
 	
 	public static function updateModelRun(){
