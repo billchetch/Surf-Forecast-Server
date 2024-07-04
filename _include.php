@@ -4,7 +4,7 @@ spl_autoload_register(function ($class) {
 	
 	$class = str_replace("\\", "/", $class);
 	
-	$paths = array('../common/php/classes', '../../common/php/classes', 'classes');
+	$paths = array('../common/php/classes', '../../common/php/classes', 'classes', '../../gps/classes');
 	if(defined('_CLASS_PATHS_')){
 		$paths = array_merge($paths, explode(',', _CLASS_PATHS_));
 	}

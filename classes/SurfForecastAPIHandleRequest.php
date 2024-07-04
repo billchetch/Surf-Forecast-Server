@@ -2,6 +2,7 @@
 use chetch\api\APIException as APIException;
 use chetch\Config as Config;
 use chetch\Utils as Utils;
+use chetch\api\APIMakeRequest as APIMakeRequest;
 
 class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 	const PUT_REQUEST_STATUS_FAIL = 1;
@@ -12,12 +13,14 @@ class SurfForecastAPIHandleRequest extends chetch\api\APIHandleRequest{
 		switch($requestParts[0]){
 			case 'locations-nearby':
 				$deviceID = isset($requestParts[1]) ? $requestParts[1] : null; //not used but might be in the future ...
-				GPS::init(self::$dbh);
-				$coords = GPS::getLatest();
-				if($coords){
+				
+				$baseURL = Config::get('GPS_API_LOCAL_URL', 'http://localhost:8003/api');
+				$apiRequest = APIMakeRequest::createGetRequest($baseURL, "latest-position");
+				$pos = $apiRequest->request();
+				if($pos){
 					$req = 'locations';
-					$params['lat'] = $coords->latitude;
-					$params['lon'] = $coords->longitude;
+					$params['lat'] = $pos['latitude'];
+					$params['lon'] = $pos['longitude'];
 				} else {
 					throw new Exception("Requesting nearby locations but cannot find location for device $deviceID");
 				}
