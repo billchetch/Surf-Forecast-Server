@@ -142,10 +142,11 @@ try{
 		$requests2make = array();
 		$params = array();
 		$ep = Config::get('FORECAST_API_ENDPOINT', 'forecast-daylight');
+		$lcount = count($result['locations']);
 		if($latLon){
-			$log->info("Getting forecasts (endpoint: $ep) using $maxLocations locations near $latLon");
+			$log->info("Getting forecasts (endpoint: $ep) using $lcount locations near $latLon");
 		} else {
-			$log->info("Getting forecasts (endpoint: $ep) using $maxLocations locations");
+			$log->info("Getting forecasts (endpoint: $ep) using $lcount locations");
 		}
 		foreach($result['locations'] as $l){
 			$req = $ep.'/'.$l['id']; //get only daylight relevant hours

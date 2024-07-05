@@ -39,7 +39,7 @@ if(Config::get('ERROR_REPORTING')){
 }
 
 function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = ''){
-	require(Config::get('PHP_MAILER'));
+/*	require(Config::get('PHP_MAILER'));
 	
 	$s = Config::get('PHP_MAILER');
 	$pi = explode('/', $s);
@@ -67,6 +67,7 @@ function getMailer($to = '', $subject = '', $body = '', $from = '', $fromName = 
 	}
 	
 	return $mail;
+*/
 }
 
 //some anu
